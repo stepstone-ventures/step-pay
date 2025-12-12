@@ -1,0 +1,18 @@
+[
+  { "period": "Jan 1", "amount": 12500, "transactions": 45 },
+  { "period": "Jan 2", "amount": 18900, "transactions": 62 },
+  { "period": "Jan 3", "amount": 15200, "transactions": 58 },
+  { "period": "Jan 4", "amount": 22100, "transactions": 78 },
+  { "period": "Jan 5", "amount": 19800, "transactions": 71 },
+  { "period": "Jan 6", "amount": 24300, "transactions": 85 },
+  { "period": "Jan 7", "amount": 26700, "transactions": 92 },
+  { "period": "Jan 8", "amount": 18900, "transactions": 65 },
+  { "period": "Jan 9", "amount": 21100, "transactions": 74 },
+  { "period": "Jan 10", "amount": 23500, "transactions": 81 },
+  { "period": "Jan 11", "amount": 19800, "transactions": 69 },
+  { "period": "Jan 12", "amount": 22400, "transactions": 77 },
+  { "period": "Jan 13", "amount": 25100, "transactions": 88 },
+  { "period": "Jan 14", "amount": 27800, "transactions": 95 },
+  { "period": "Jan 15", "amount": 18900, "transactions": 67 }
+]
+

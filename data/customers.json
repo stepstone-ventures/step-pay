@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CUST-001",
+    "name": "Kofi Mensah",
+    "email": "kofi.mensah@email.com",
+    "phone": "+233 24 123 4567",
+    "totalTransactions": 15,
+    "totalAmount": 18500.00,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-15T10:30:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-002",
+    "name": "Ama Boateng",
+    "email": "ama.boateng@email.com",
+    "phone": "+233 55 234 5678",
+    "totalTransactions": 8,
+    "totalAmount": 12200.50,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-15T09:15:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-003",
+    "name": "Kwame Asante",
+    "email": "kwame.asante@email.com",
+    "phone": "+233 20 345 6789",
+    "totalTransactions": 5,
+    "totalAmount": 3200.75,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-15T08:45:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-004",
+    "name": "Efua Owusu",
+    "email": "efua.owusu@email.com",
+    "phone": "+233 54 456 7890",
+    "totalTransactions": 12,
+    "totalAmount": 15600.00,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-14T16:20:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-005",
+    "name": "Yaw Danso",
+    "email": "yaw.danso@email.com",
+    "phone": "+233 27 567 8901",
+    "totalTransactions": 3,
+    "totalAmount": 1500.00,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-14T14:10:00Z",
+    "status": "inactive"
+  },
+  {
+    "id": "CUST-006",
+    "name": "Akosua Adjei",
+    "email": "akosua.adjei@email.com",
+    "phone": "+233 50 678 9012",
+    "totalTransactions": 10,
+    "totalAmount": 8900.25,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-14T11:30:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-007",
+    "name": "Maame Yaa",
+    "email": "maame.yaa@email.com",
+    "phone": "+233 24 789 0123",
+    "totalTransactions": 7,
+    "totalAmount": 11200.00,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-13T13:20:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-008",
+    "name": "Nana Kwaku",
+    "email": "nana.kwaku@email.com",
+    "phone": "+233 26 890 1234",
+    "totalTransactions": 4,
+    "totalAmount": 2650.50,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-13T10:15:00Z",
+    "status": "active"
+  },
+  {
+    "id": "CUST-009",
+    "name": "Adjoa Darko",
+    "email": "adjoa.darko@email.com",
+    "phone": "+233 23 901 2345",
+    "totalTransactions": 9,
+    "totalAmount": 14100.75,
+    "currency": "GHS",
+    "lastTransaction": "2024-01-12T17:30:00Z",
+    "status": "active"
+  }
+]
+

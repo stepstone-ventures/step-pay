@@ -1,0 +1,25 @@
+# Files and directories to ignore during Netlify build
+# This doesn't affect what gets committed to Git
+
+# Dependencies (will be installed during build)
+node_modules
+
+# Build artifacts (will be generated during build)
+.next
+out
+build
+
+# Development files
+*.log
+.DS_Store
+
+# Environment files (if any)
+.env.local
+.env.development
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
