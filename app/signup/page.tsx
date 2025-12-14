@@ -84,6 +84,15 @@ export default function SignupPage() {
     }
 
     setErrors({})
+    // Store signup data for compliance forms
+    localStorage.setItem(
+      "signup_data",
+      JSON.stringify({
+        email: formData.email,
+        country: formData.country,
+        businessName: formData.businessName,
+      })
+    )
     // Mock signup - redirect to onboarding
     router.push("/onboarding")
   }
