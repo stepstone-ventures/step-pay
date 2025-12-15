@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
+import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
 
 const industries = [
   "Retail",
@@ -139,7 +140,8 @@ export default function ProfilePage() {
 
   if (viewMode === "review") {
     return (
-      <div className="space-y-6">
+      <ComplianceAccessGuard step="profile">
+        <div className="space-y-6">
         <div>
           <Link href="/dashboard/compliance">
             <Button variant="ghost" size="sm">
@@ -208,22 +210,24 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ComplianceAccessGuard>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/dashboard/compliance">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Compliance
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold mt-4">Profile</h1>
-        <p className="text-muted-foreground mt-1">Step 1 of 5: Provide your business profile information</p>
-      </div>
+    <ComplianceAccessGuard step="profile">
+      <div className="space-y-6">
+        <div>
+          <Link href="/dashboard/compliance">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Compliance
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold mt-4">Profile</h1>
+          <p className="text-muted-foreground mt-1">Step 1 of 5: Provide your business profile information</p>
+        </div>
 
       <Card>
         <CardHeader>
@@ -380,7 +384,8 @@ export default function ProfilePage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ComplianceAccessGuard>
   )
 }
 

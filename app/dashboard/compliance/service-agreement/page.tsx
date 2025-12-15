@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Edit, CheckCircle2, Download } from "lucide-react"
 import Link from "next/link"
+import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
 
 export default function ServiceAgreementPage() {
   const router = useRouter()
@@ -246,7 +247,8 @@ Date: ${new Date().toLocaleDateString()}
 
   if (viewMode === "review") {
     return (
-      <div className="space-y-6">
+      <ComplianceAccessGuard step="service-agreement">
+        <div className="space-y-6">
         <div>
           <Link href="/dashboard/compliance">
             <Button variant="ghost" size="sm">
@@ -325,12 +327,14 @@ Date: ${new Date().toLocaleDateString()}
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ComplianceAccessGuard>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <ComplianceAccessGuard step="service-agreement">
+      <div className="space-y-6">
       <div>
         <Link href="/dashboard/compliance">
           <Button variant="ghost" size="sm">
@@ -453,7 +457,8 @@ Date: ${new Date().toLocaleDateString()}
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ComplianceAccessGuard>
   )
 }
 

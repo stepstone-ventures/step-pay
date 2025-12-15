@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2, HelpCircle } from "lucide-react"
 import Link from "next/link"
+import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
 
 export default function ContactPage() {
   const router = useRouter()
@@ -181,15 +182,16 @@ export default function ContactPage() {
 
   if (viewMode === "review") {
     return (
-      <div className="space-y-6">
-        <div>
-          <Link href="/dashboard/compliance">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Compliance
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold mt-4">Contact - Review</h1>
+      <ComplianceAccessGuard step="contact">
+        <div className="space-y-6">
+          <div>
+            <Link href="/dashboard/compliance">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Compliance
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold mt-4">Contact - Review</h1>
           <p className="text-muted-foreground mt-1">Review your contact information</p>
         </div>
 
@@ -317,12 +319,14 @@ export default function ContactPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ComplianceAccessGuard>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <ComplianceAccessGuard step="contact">
+      <div className="space-y-6">
       <div>
         <Link href="/dashboard/compliance">
           <Button variant="ghost" size="sm">
@@ -579,7 +583,8 @@ export default function ContactPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ComplianceAccessGuard>
   )
 }
 

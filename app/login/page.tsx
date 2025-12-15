@@ -44,8 +44,22 @@ export default function LoginPage() {
     }
 
     setErrors({})
-    // Mock login - redirect to dashboard
-    router.push("/dashboard")
+    // Check compliance status and redirect accordingly
+    const complianceComplete = localStorage.getItem("compliance_complete") === "true"
+    const complianceSteps = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
+    
+    if (!complianceComplete) {
+      // Find the first incomplete step
+      const steps = ["profile", "contact", "owner", "account", "service-agreement"]
+      const nextStep = steps.find((step) => !complianceSteps.includes(step))
+      if (nextStep) {
+        router.push(`/dashboard/compliance/${nextStep}`)
+      } else {
+        router.push("/dashboard/compliance/profile")
+      }
+    } else {
+      router.push("/dashboard")
+    }
   }
 
   return (

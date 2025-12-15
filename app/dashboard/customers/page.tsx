@@ -3,6 +3,16 @@
 import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
@@ -12,15 +22,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search } from "lucide-react"
+import { Users, Search, Filter, X, Download, Plus } from "lucide-react"
 import type { Customer } from "@/lib/mock-data"
 
 export default function CustomersPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
+  const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [accountNumber, setAccountNumber] = useState("")
+  const [searchEmail, setSearchEmail] = useState("")
+  const [newCustomer, setNewCustomer] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Fetch customers from API route
   useEffect(() => {
@@ -34,18 +52,107 @@ export default function CustomersPage() {
   }, [])
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter((customer) => {
-      const matchesSearch =
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.phone.includes(searchQuery)
+    let filtered = [...customers]
 
-      const matchesStatus =
-        statusFilter === "all" || customer.status === statusFilter
+    // Filter by account number (using customer ID as proxy)
+    if (accountNumber) {
+      filtered = filtered.filter((c) =>
+        c.id.toLowerCase().includes(accountNumber.toLowerCase())
+      )
+    }
 
-      return matchesSearch && matchesStatus
+    // Filter by email search
+    if (searchEmail) {
+      filtered = filtered.filter((c) =>
+        c.email.toLowerCase().includes(searchEmail.toLowerCase())
+      )
+    }
+
+    // Sort by date added (most recent first)
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.lastTransaction).getTime()
+      const dateB = new Date(b.lastTransaction).getTime()
+      return dateB - dateA
     })
-  }, [customers, searchQuery, statusFilter])
+
+    return filtered
+  }, [customers, accountNumber, searchEmail])
+
+  const handleAddCustomer = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!newCustomer.firstName.trim()) {
+      newErrors.firstName = "First name is required"
+    }
+    if (!newCustomer.lastName.trim()) {
+      newErrors.lastName = "Last name is required"
+    }
+    if (!newCustomer.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newCustomer.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+    if (!newCustomer.phone.trim()) {
+      newErrors.phone = "Phone number is required"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    // Add customer (in real app, this would be an API call)
+    const customer: Customer = {
+      id: `CUST-${Date.now()}`,
+      name: `${newCustomer.firstName} ${newCustomer.lastName}`,
+      email: newCustomer.email,
+      phone: newCustomer.phone,
+      totalTransactions: 0,
+      totalAmount: 0,
+      lastTransaction: new Date().toISOString(),
+      status: "active",
+      currency: "GHS",
+    }
+
+    setCustomers([customer, ...customers])
+    setNewCustomer({ firstName: "", lastName: "", email: "", phone: "" })
+    setErrors({})
+    setShowAddCustomer(false)
+  }
+
+  const handleExportCSV = () => {
+    const headers = ["ID", "Name", "Email", "Phone", "Total Transactions", "Total Amount", "Last Transaction", "Status"]
+    const rows = filteredCustomers.map((c) => [
+      c.id,
+      c.name,
+      c.email,
+      c.phone,
+      c.totalTransactions.toString(),
+      c.totalAmount.toString(),
+      new Date(c.lastTransaction).toLocaleDateString(),
+      c.status,
+    ])
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `customers_${new Date().toISOString().split("T")[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleReset = () => {
+    setAccountNumber("")
+    setSearchEmail("")
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-GH", {
@@ -91,32 +198,170 @@ export default function CustomersPage() {
         </p>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
+      {/* Filters and Actions */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Left side - Filters and Search */}
+        <div className="flex flex-col md:flex-row gap-4 flex-1">
+          {/* Filters Button */}
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Filters
+          </Button>
+
+          {/* Search Email */}
+          <div className="flex-1 space-y-2 min-w-[200px]">
+            <Label>Search Email</Label>
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, or phone..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                placeholder="Search by email..."
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                className="pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Right side - Actions */}
+        <div className="flex gap-2">
+          <Button onClick={() => setShowAddCustomer(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Customer
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Filters</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowFilters(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Account Number</Label>
+              <Input
+                placeholder="Enter account number"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button variant="outline" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button onClick={() => setShowFilters(false)}>Filter</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add Customer Dialog */}
+      <Dialog open={showAddCustomer} onOpenChange={setShowAddCustomer}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Customer</DialogTitle>
+            <DialogDescription>
+              Enter the customer details to add them to your database
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  placeholder="John"
+                  value={newCustomer.firstName}
+                  onChange={(e) => {
+                    setNewCustomer({ ...newCustomer, firstName: e.target.value })
+                    if (errors.firstName) setErrors({ ...errors, firstName: "" })
+                  }}
+                  className={errors.firstName ? "border-destructive" : ""}
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-destructive">{errors.firstName}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
+                  value={newCustomer.lastName}
+                  onChange={(e) => {
+                    setNewCustomer({ ...newCustomer, lastName: e.target.value })
+                    if (errors.lastName) setErrors({ ...errors, lastName: "" })
+                  }}
+                  className={errors.lastName ? "border-destructive" : ""}
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-destructive">{errors.lastName}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="customer@email.com"
+                value={newCustomer.email}
+                onChange={(e) => {
+                  setNewCustomer({ ...newCustomer, email: e.target.value })
+                  if (errors.email) setErrors({ ...errors, email: "" })
+                }}
+                className={errors.email ? "border-destructive" : ""}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+233 24 123 4567"
+                value={newCustomer.phone}
+                onChange={(e) => {
+                  setNewCustomer({ ...newCustomer, phone: e.target.value })
+                  if (errors.phone) setErrors({ ...errors, phone: "" })
+                }}
+                className={errors.phone ? "border-destructive" : ""}
+              />
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddCustomer(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddCustomer}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Customers Table */}
       <Card>
@@ -127,8 +372,12 @@ export default function CustomersPage() {
         </CardHeader>
         <CardContent>
           {filteredCustomers.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No customers found matching your search criteria.
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Customers yet</h3>
+              <p className="text-muted-foreground">
+                There are no customers yet for your account. Please try another query or clear your filters
+              </p>
             </div>
           ) : (
             <Table>

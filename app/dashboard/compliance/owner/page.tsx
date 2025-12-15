@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2, Upload, FileText } from "lucide-react"
 import Link from "next/link"
+import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
 
 const idDocumentTypes = ["Passport", "Ghana Card"]
 
@@ -136,7 +137,8 @@ export default function OwnerPage() {
 
   if (viewMode === "review") {
     return (
-      <div className="space-y-6">
+      <ComplianceAccessGuard step="owner">
+        <div className="space-y-6">
         <div>
           <Link href="/dashboard/compliance">
             <Button variant="ghost" size="sm">
@@ -212,12 +214,14 @@ export default function OwnerPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ComplianceAccessGuard>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <ComplianceAccessGuard step="owner">
+      <div className="space-y-6">
       <div>
         <Link href="/dashboard/compliance">
           <Button variant="ghost" size="sm">
@@ -380,7 +384,8 @@ export default function OwnerPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ComplianceAccessGuard>
   )
 }
 

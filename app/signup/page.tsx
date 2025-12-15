@@ -93,8 +93,8 @@ export default function SignupPage() {
         businessName: formData.businessName,
       })
     )
-    // Mock signup - redirect to onboarding
-    router.push("/onboarding")
+    // Redirect new user to compliance profile
+    router.push("/dashboard/compliance/profile")
   }
 
   return (

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
+import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
 
 const ghanaBanks = [
   "Access Bank Ghana",
@@ -132,7 +133,8 @@ export default function AccountPage() {
 
   if (viewMode === "review") {
     return (
-      <div className="space-y-6">
+      <ComplianceAccessGuard step="account">
+        <div className="space-y-6">
         <div>
           <Link href="/dashboard/compliance">
             <Button variant="ghost" size="sm">
@@ -205,12 +207,14 @@ export default function AccountPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ComplianceAccessGuard>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <ComplianceAccessGuard step="account">
+      <div className="space-y-6">
       <div>
         <Link href="/dashboard/compliance">
           <Button variant="ghost" size="sm">
@@ -359,7 +363,8 @@ export default function AccountPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ComplianceAccessGuard>
   )
 }
 
