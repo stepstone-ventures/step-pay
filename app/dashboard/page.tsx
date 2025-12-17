@@ -3,17 +3,9 @@
 import { useState, useEffect } from "react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { LineChart } from "@/components/dashboard/line-chart"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, DollarSign, CreditCard, Activity } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TrendingUp, DollarSign, Activity, AlertTriangle, TrendingDown } from "lucide-react"
 import type { Transaction, PaymentVolume } from "@/lib/mock-data"
 
 interface DashboardStats {
@@ -23,11 +15,14 @@ interface DashboardStats {
   successRate: number
 }
 
+const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [paymentVolume, setPaymentVolume] = useState<PaymentVolume[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCurrency, setSelectedCurrency] = useState("GHS")
 
   // Fetch data from API routes
   useEffect(() => {
@@ -45,37 +40,27 @@ export default function DashboardPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const recentTransactions = transactions.slice(0, 5)
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-GH", {
       style: "currency",
-      currency: "GHS",
+      currency: selectedCurrency,
     }).format(amount)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GH", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+  const successRate = stats ? stats.successRate : 0
+  const failedTransactions = transactions.filter((t) => t.status === "failed").length
+  const pendingTransactions = transactions.filter((t) => t.status === "pending").length
+  const paymentIssues = failedTransactions + pendingTransactions
+
+  // Calculate sales prediction (simple linear trend)
+  const calculateSalesPrediction = () => {
+    if (paymentVolume.length < 2) return 0
+    const recent = paymentVolume.slice(-7)
+    const avgDaily = recent.reduce((sum, v) => sum + v.amount, 0) / recent.length
+    return avgDaily * 30 // Projected monthly
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "successful":
-        return <Badge variant="success">Successful</Badge>
-      case "pending":
-        return <Badge variant="secondary">Pending</Badge>
-      case "failed":
-        return <Badge variant="destructive">Failed</Badge>
-      default:
-        return <Badge>{status}</Badge>
-    }
-  }
+  const salesPrediction = calculateSalesPrediction()
 
   if (loading || !stats) {
     return (
@@ -104,78 +89,54 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          change="+12.5% from last month"
-          icon={DollarSign}
-        />
-        <StatCard
-          title="Pending Amount"
-          value={formatCurrency(stats.pendingAmount)}
-          change="3 transactions"
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Total Transactions"
-          value={stats.totalTransactions.toString()}
-          change="+8.2% from last month"
-          icon={CreditCard}
-        />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+              <SelectTrigger className="w-[80px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((curr) => (
+                  <SelectItem key={curr} value={curr}>
+                    {curr}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+            <p className="text-xs text-muted-foreground">
+              Total revenue from successful transactions
+            </p>
+          </CardContent>
+        </Card>
+
         <StatCard
           title="Success Rate"
-          value={`${stats.successRate}%`}
+          value={`${successRate.toFixed(1)}%`}
           change="Last 30 days"
           icon={Activity}
+        />
+
+        <StatCard
+          title="Payment Issues"
+          value={paymentIssues.toString()}
+          change={`${failedTransactions} failed, ${pendingTransactions} pending`}
+          icon={AlertTriangle}
+        />
+
+        <StatCard
+          title="Sales Predictions"
+          value={formatCurrency(salesPrediction)}
+          change="Projected for next month"
+          icon={TrendingUp}
         />
       </div>
 
       {/* Chart */}
       <LineChart data={paymentVolume} title="Payment Volume (Last 15 Days)" />
-
-      {/* Recent Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Transaction ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">{transaction.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{transaction.customer}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {transaction.email}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(transaction.amount)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(transaction.status)}</TableCell>
-                  <TableCell>{transaction.paymentMethod}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(transaction.date)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   )
 }
