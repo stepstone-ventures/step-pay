@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
-  FileCheck,
+  Shield,
   Home,
   CreditCard,
   Users,
@@ -14,7 +14,7 @@ import {
   AlertCircle,
   Split,
   Building2,
-  Terminal,
+  Tablet,
   Repeat,
   Calendar,
   ShoppingBag,
@@ -24,17 +24,19 @@ import {
   FileText,
   Settings,
   Menu,
+  X,
   ChevronDown,
   ChevronRight,
 } from "lucide-react"
 import { isComplianceComplete } from "@/lib/compliance-utils"
+import { Button } from "@/components/ui/button"
 
 const navigation = [
   {
     name: "Compliance",
-    href: "/dashboard/compliance/profile",
-    icon: FileCheck,
-    color: "text-red-500",
+    href: "/dashboard/compliance",
+    icon: Shield,
+    color: "text-red-400",
   },
   {
     name: "Home",
@@ -51,7 +53,7 @@ const navigation = [
       { name: "Disputes", href: "/dashboard/disputes", icon: AlertCircle },
       { name: "Transaction Splits", href: "/dashboard/transaction-splits", icon: Split },
       { name: "Subaccounts", href: "/dashboard/subaccounts", icon: Building2 },
-      { name: "Terminals", href: "/dashboard/terminals", icon: Terminal },
+      { name: "Terminals", href: "/dashboard/terminals", icon: Tablet },
     ],
   },
   {
@@ -72,21 +74,11 @@ const navigation = [
       { name: "Invoices", href: "/dashboard/invoices", icon: Receipt },
     ],
   },
-  {
-    name: "Audit Logs",
-    href: "/dashboard/audit-logs",
-    icon: FileText,
-  },
-  {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
 ]
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (open: boolean) => void }) {
   const pathname = usePathname()
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["PAYMENTS", "RECURRING", "COMMERCE"]))
   const [isComplianceDone, setIsComplianceDone] = useState(false)
 
   useEffect(() => {
@@ -103,84 +95,194 @@ export function Sidebar() {
     setExpandedSections(newExpanded)
   }
 
-  return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-background px-6 pb-4">
-        <div className="flex h-16 shrink-0 items-center">
-          <h1 className="text-xl font-bold">StepPay</h1>
+  const sidebarContent = (
+    <div className="flex h-full flex-col overflow-y-auto px-4 pb-6 pt-0">
+      {/* Logo Section - No spacing from top edge */}
+      <div className="flex items-start justify-center px-2 pt-0">
+        <div className="flex items-center justify-center w-full relative">
+          <img 
+            src="/steppay-logo.png" 
+            alt="STEPPAY" 
+            className="h-[180px] w-auto object-contain"
+          />
+          {setMobileOpen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(false)}
+              className="md:hidden text-sidebar-foreground hover:bg-sidebar-hover shrink-0 absolute top-0 right-0"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
         </div>
-        <nav className="flex flex-1 flex-col">
-          <ul role="list" className="flex flex-1 flex-col gap-y-7">
+      </div>
+      {/* Navigation Section - Aligned with filter tools level (pt-6 equivalent) */}
+      <div className="flex flex-col flex-1 min-h-0">
+        <nav className="flex flex-col shrink-0 pt-6 pb-4">
+          <ul role="list" className="flex flex-col gap-y-1">
             {navigation.map((item) => {
-              if (item.children) {
-                const isExpanded = expandedSections.has(item.name)
-                return (
-                  <li key={item.name}>
-                    <button
-                      onClick={() => toggleSection(item.name)}
-                      className="flex items-center gap-x-3 text-sm font-semibold leading-6 text-foreground hover:text-primary"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                      <span>{item.name}</span>
-                    </button>
-                    {isExpanded && (
-                      <ul role="list" className="mt-2 space-y-1">
-                        {item.children.map((child) => {
-                          const isActive = pathname === child.href
-                          const Icon = child.icon
-                          return (
-                            <li key={child.name}>
-                              <Link
-                                href={child.href}
-                                className={cn(
-                                  "flex items-center gap-x-3 rounded-md px-2 py-1.5 text-sm leading-6",
-                                  isActive
-                                    ? "bg-primary/10 text-primary font-semibold"
-                                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                                )}
-                              >
-                                <Icon className="h-4 w-4 shrink-0" />
-                                {child.name}
-                              </Link>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    )}
-                  </li>
-                )
-              }
-
-              const isActive = pathname === item.href
-              const Icon = item.icon || FileCheck
-              const complianceColor = item.name === "Compliance" && isComplianceDone ? "text-green-500" : item.color || ""
-
+            if (item.children) {
+              const isExpanded = expandedSections.has(item.name)
               return (
                 <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-x-3 rounded-md px-2 py-1.5 text-sm font-semibold leading-6",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground hover:bg-accent",
-                      complianceColor && !isActive ? complianceColor : ""
-                    )}
+                  <button
+                    onClick={() => toggleSection(item.name)}
+                    className="w-full flex items-center gap-x-3 px-3 py-2.5 text-sm font-semibold leading-6 text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground rounded-lg transition-smooth"
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.name}
-                  </Link>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0" />
+                    )}
+                    <span>{item.name}</span>
+                  </button>
+                  {isExpanded && (
+                    <ul role="list" className="mt-1 ml-7 space-y-1">
+                      {item.children.map((child) => {
+                        const isActive = pathname === child.href
+                        const Icon = child.icon
+                        return (
+                          <li key={child.name}>
+                            <Link
+                              href={child.href}
+                              onClick={() => {
+                                // Close sidebar on mobile after navigation
+                                if (window.innerWidth < 768) {
+                                  setMobileOpen?.(false)
+                                }
+                              }}
+                              className={cn(
+                                "flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm leading-6 transition-smooth",
+                                isActive
+                                  ? "bg-primary/20 text-primary font-medium"
+                                  : "text-sidebar-foreground/70 hover:bg-sidebar-hover hover:text-sidebar-foreground"
+                              )}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              {child.name}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
                 </li>
               )
-            })}
+            }
+
+            // For Home, use exact match. For Compliance, match compliance routes
+            const isActive = item.name === "Home" 
+              ? pathname === item.href
+              : item.name === "Compliance"
+              ? pathname === item.href || pathname.startsWith("/dashboard/compliance")
+              : pathname === item.href || (item.href && pathname.startsWith(item.href + "/"))
+            const Icon = item.icon || Shield
+            const complianceColor = item.name === "Compliance" && isComplianceDone ? "text-green-300" : item.color || ""
+
+            return (
+              <li key={item.name}>
+                <Link
+                  href={item.href}
+                  onClick={() => {
+                    // Close sidebar on mobile after navigation
+                    if (window.innerWidth < 768) {
+                      setMobileOpen?.(false)
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
+                    isActive
+                      ? "bg-primary/20 text-primary"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground",
+                    complianceColor && !isActive ? complianceColor : ""
+                  )}
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {item.name}
+                </Link>
+              </li>
+            )
+          })}
           </ul>
         </nav>
+        
+        {/* Bottom section for Audit Logs and Settings - Always at bottom */}
+        <div className="mt-auto pt-4 border-t border-sidebar-border">
+          <ul role="list" className="space-y-1">
+            <li>
+              <Link
+                href="/dashboard/audit-logs"
+                onClick={() => {
+                  // Close sidebar on mobile after navigation
+                  if (window.innerWidth < 768) {
+                    setMobileOpen?.(false)
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
+                  pathname === "/dashboard/audit-logs" || pathname.startsWith("/dashboard/audit-logs/")
+                    ? "bg-primary/20 text-primary"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground"
+                )}
+              >
+                <FileText className="h-5 w-5 shrink-0" />
+                Audit Logs
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/dashboard/settings"
+                onClick={() => {
+                  // Close sidebar on mobile after navigation
+                  if (window.innerWidth < 768) {
+                    setMobileOpen?.(false)
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
+                  pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
+                    ? "bg-primary/20 text-primary"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground"
+                )}
+              >
+                <Settings className="h-5 w-5 shrink-0" />
+                Settings
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   )
-}
 
+  return (
+    <>
+      {/* Mobile sidebar backdrop */}
+      {mobileOpen && setMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Desktop & Tablet Sidebar */}
+      <div className="hidden md:fixed md:inset-y-0 md:z-30 md:flex md:w-64 md:flex-col">
+        <div className="flex grow flex-col bg-sidebar shadow-xl overflow-hidden">
+          {sidebarContent}
+        </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 flex-col bg-sidebar shadow-xl transform transition-transform duration-300 ease-out md:hidden overflow-hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </div>
+    </>
+  )
+}

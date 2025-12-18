@@ -190,50 +190,40 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Customers</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your customer database
-        </p>
-      </div>
-
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
       {/* Filters and Actions */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         {/* Left side - Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
           {/* Filters Button */}
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="h-10"
+            className="h-10 w-full sm:w-auto"
           >
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
 
           {/* Search Email */}
-          <div className="flex-1 space-y-2 min-w-[200px]">
-            <Label>Search Email</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by email..."
-                value={searchEmail}
-                onChange={(e) => setSearchEmail(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+            <Input
+              placeholder="Search by email..."
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+              className="pl-9 h-10 w-full"
+            />
           </div>
         </div>
 
         {/* Right side - Actions */}
-        <div className="flex gap-2">
-          <Button onClick={() => setShowAddCustomer(true)}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={() => setShowAddCustomer(true)} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto h-10">
             <Plus className="mr-2 h-4 w-4" />
             Add Customer
           </Button>
-          <Button variant="outline" onClick={handleExportCSV}>
+          <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto h-10">
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
@@ -383,6 +373,7 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>#</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Total Transactions</TableHead>
@@ -392,8 +383,11 @@ export default function CustomersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => (
+                {filteredCustomers.map((customer, index) => (
                   <TableRow key={customer.id}>
+                    <TableCell className="text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
                     <TableCell>
                       <div className="font-medium">{customer.name}</div>
                       <div className="text-sm text-muted-foreground">

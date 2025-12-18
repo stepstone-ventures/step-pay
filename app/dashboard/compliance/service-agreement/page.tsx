@@ -247,18 +247,17 @@ Date: ${new Date().toLocaleDateString()}
 
   if (viewMode === "review") {
     return (
-      <ComplianceAccessGuard step="service-agreement">
+      <ComplianceAccessGuard currentStep="service-agreement">
         <div className="space-y-6">
-        <div>
-          <Link href="/dashboard/compliance">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Compliance
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold mt-4">Service Agreement - Review</h1>
-          <p className="text-muted-foreground mt-1">Review and download your service agreement</p>
-        </div>
+          <div className="pt-6">
+            <div className="flex items-center mb-6">
+              <Link href="/dashboard/compliance">
+                <Button variant="ghost" size="sm" className="h-10">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Compliance
+                </Button>
+              </Link>
+            </div>
 
         <Card>
           <CardHeader>
@@ -328,22 +327,21 @@ Date: ${new Date().toLocaleDateString()}
           </CardContent>
         </Card>
         </div>
+        </div>
       </ComplianceAccessGuard>
     )
   }
 
   return (
-    <ComplianceAccessGuard step="service-agreement">
-      <div className="space-y-6">
-      <div>
+    <ComplianceAccessGuard currentStep="service-agreement">
+      <div className="space-y-6 pt-6">
+      <div className="flex items-center">
         <Link href="/dashboard/compliance">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="h-10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Compliance
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold mt-4">Service Agreement</h1>
-        <p className="text-muted-foreground mt-1">Step 5 of 5: Review and accept the service agreement</p>
       </div>
 
       <Card>

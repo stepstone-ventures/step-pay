@@ -305,94 +305,85 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Transactions</h1>
-        <p className="text-muted-foreground mt-1">
-          View all your payment transactions
-        </p>
-      </div>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
 
       {/* Filters and Search */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Account and Time Range */}
-        <div className="flex flex-wrap gap-4 flex-1">
-          <div className="space-y-2 min-w-[150px]">
-            <Label>Account</Label>
-            <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Accounts" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
-                <SelectItem value="main">Main Account</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex flex-col gap-4">
+        {/* First Row: Quick Filters and Search */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          {/* Account and Time Range */}
+          <div className="flex flex-wrap gap-3 flex-1">
+            <div className="min-w-[150px] flex-1 sm:flex-initial">
+              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="All Accounts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Accounts</SelectItem>
+                  <SelectItem value="main">Main Account</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2 min-w-[150px]">
-            <Label>Time Range</Label>
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {timeRanges.map((range) => (
-                  <SelectItem key={range} value={range}>
-                    {range}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="min-w-[150px] flex-1 sm:flex-initial">
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeRanges.map((range) => (
+                    <SelectItem key={range} value={range}>
+                      {range}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {timeRange === "Custom" && (
-            <>
-              <div className="space-y-2 min-w-[150px]">
-                <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2 min-w-[150px]">
-                <Label>End Date</Label>
-                <Input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Filter Button */}
-          <div className="flex items-end">
+            {/* Filter Button */}
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="h-10"
+              className="h-10 w-full sm:w-auto"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filter by Status
             </Button>
-          </div>
 
-          {/* Search Reference */}
-          <div className="flex-1 space-y-2 min-w-[200px]">
-            <Label>Search Reference</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* Search Reference */}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
               <Input
                 placeholder="Search by reference..."
                 value={searchReference}
                 onChange={(e) => setSearchReference(e.target.value)}
-                className="pl-9"
+                className="pl-9 h-10 w-full"
               />
             </div>
           </div>
         </div>
+
+        {/* Custom Date Range - Second Row */}
+        {timeRange === "Custom" && (
+          <div className="flex flex-wrap gap-3">
+            <div className="min-w-[150px] flex-1 sm:flex-initial">
+              <Input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="h-10"
+              />
+            </div>
+            <div className="min-w-[150px] flex-1 sm:flex-initial">
+              <Input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="h-10"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter Panel */}
@@ -532,6 +523,7 @@ export default function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>#</TableHead>
                   <TableHead>Transaction ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Amount</TableHead>
@@ -542,8 +534,11 @@ export default function TransactionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTransactions.map((transaction) => (
+                {filteredTransactions.map((transaction, index) => (
                   <TableRow key={transaction.id}>
+                    <TableCell className="text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {transaction.id}
                     </TableCell>

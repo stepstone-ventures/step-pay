@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +46,27 @@ export default function PlansPage() {
   const [plans] = useState<Plan[]>(mockPlans)
   const [showFilters, setShowFilters] = useState(false)
   const [showNewPlanDialog, setShowNewPlanDialog] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
   const [status, setStatus] = useState("Show All")
   const [interval, setInterval] = useState("")
   const [subscriptionCountMode, setSubscriptionCountMode] = useState("Show All")
@@ -172,33 +193,29 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Plans</h1>
-          <p className="text-muted-foreground mt-1">
-            Create and manage subscription plans
-          </p>
+    <div className="space-y-6 pt-6">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        {/* Left side - Filters */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Filters
+          </Button>
         </div>
-        <Button onClick={() => setShowNewPlanDialog(true)}>
+
+        {/* Right side - Create Plan Button */}
+        <Button onClick={() => setShowNewPlanDialog(true)} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto h-10">
           <Plus className="mr-2 h-4 w-4" />
           Create Plan
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="h-10"
-        >
-          <Filter className="mr-2 h-4 w-4" />
-          Filters
-        </Button>
-      </div>
-
       {showFilters && (
-        <Card>
+        <Card ref={filterRef}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Filters</CardTitle>

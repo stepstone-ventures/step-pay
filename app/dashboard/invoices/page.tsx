@@ -137,13 +137,7 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Invoices</h1>
-        <p className="text-muted-foreground mt-1">
-          Create and manage customer invoices
-        </p>
-      </div>
+    <div className="space-y-6 pt-6">
 
       <div className="flex items-center gap-4">
         <Button

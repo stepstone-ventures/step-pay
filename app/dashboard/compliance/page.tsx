@@ -44,14 +44,7 @@ export default function CompliancePage() {
   const allCompleted = steps.every((step) => completedSteps.has(step.id))
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Compliance</h1>
-        <p className="text-muted-foreground mt-1">
-          Complete all steps to activate your account
-        </p>
-      </div>
-
+    <div className="space-y-6 pt-6">
       <Card>
         <CardHeader>
           <CardTitle>Compliance Checklist</CardTitle>

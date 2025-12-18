@@ -131,13 +131,7 @@ export default function RefundsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Refunds</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage and track refunds
-        </p>
-      </div>
+    <div className="space-y-6 pt-6">
 
       {/* Filters */}
       <div className="flex items-center gap-4">

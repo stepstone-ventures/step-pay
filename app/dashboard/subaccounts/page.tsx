@@ -58,56 +58,50 @@ export default function SubaccountsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Subaccounts</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your subaccounts for split payments
-          </p>
-        </div>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Subaccount
-        </Button>
-      </div>
+    <div className="space-y-6 pt-6">
+      {/* Filters and Actions */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-end justify-between">
+        {/* Left side - Sort and Search */}
+        <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+          <div className="space-y-2 w-full md:w-[180px]">
+            <Label>Sort By</Label>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-        <div className="space-y-2 w-full md:w-[180px]">
-          <Label>Sort By</Label>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex-1 space-y-2 min-w-[200px]">
-          <Label>Search Subaccounts</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or account number..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex-1 space-y-2 min-w-[200px]">
+            <Label>Search Subaccounts</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or account number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="md:ml-auto">
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Subaccount
-          </Button>
+        {/* Right side - Add Button - Aligned with input fields */}
+        <div className="w-full md:w-auto flex items-end">
+          <div className="w-full md:w-auto">
+            <div className="h-[18px] md:h-0"></div>
+            <Button className="bg-green-600 hover:bg-green-700 w-full md:w-auto h-10">
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Subaccount
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -133,6 +127,7 @@ export default function SubaccountsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>#</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Account Number</TableHead>
                   <TableHead>Date Created</TableHead>
@@ -140,8 +135,11 @@ export default function SubaccountsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedAndFiltered.map((account) => (
+                {sortedAndFiltered.map((account, index) => (
                   <TableRow key={account.id}>
+                    <TableCell className="text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
                     <TableCell className="font-medium">{account.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {account.accountNumber}

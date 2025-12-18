@@ -2,11 +2,35 @@
 
 import { useState, useEffect } from "react"
 import { StatCard } from "@/components/dashboard/stat-card"
+import { BarChart } from "@/components/dashboard/bar-chart"
 import { LineChart } from "@/components/dashboard/line-chart"
+import { PieChart } from "@/components/dashboard/pie-chart"
+import { DonutChart } from "@/components/dashboard/donut-chart"
+import { AreaChart } from "@/components/dashboard/area-chart"
+import { ColumnChart } from "@/components/dashboard/column-chart"
+import { StackedBarChart } from "@/components/dashboard/stacked-bar-chart"
+import { ScatterChart } from "@/components/dashboard/scatter-chart"
+import { CandlestickChart } from "@/components/dashboard/candlestick-chart"
+import { WaterfallChart } from "@/components/dashboard/waterfall-chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingUp, DollarSign, Activity, AlertTriangle, TrendingDown } from "lucide-react"
 import type { Transaction, PaymentVolume } from "@/lib/mock-data"
+
+type ChartType = "bar" | "line" | "pie" | "donut" | "area" | "column" | "stacked-bar" | "scatter" | "candlestick" | "waterfall"
+
+const chartTypes: { value: ChartType; label: string }[] = [
+  { value: "bar", label: "Bar Chart" },
+  { value: "line", label: "Line Chart" },
+  { value: "pie", label: "Pie Chart" },
+  { value: "donut", label: "Donut Chart" },
+  { value: "area", label: "Area Chart" },
+  { value: "column", label: "Column Chart" },
+  { value: "stacked-bar", label: "Stacked Bar Chart" },
+  { value: "scatter", label: "Scatter Chart" },
+  { value: "candlestick", label: "Candlestick Chart" },
+  { value: "waterfall", label: "Waterfall Chart" },
+]
 
 interface DashboardStats {
   totalRevenue: number
@@ -23,6 +47,7 @@ export default function DashboardPage() {
   const [paymentVolume, setPaymentVolume] = useState<PaymentVolume[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCurrency, setSelectedCurrency] = useState("GHS")
+  const [chartType, setChartType] = useState<ChartType>("bar")
 
   // Fetch data from API routes
   useEffect(() => {
@@ -79,13 +104,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Overview of your payment activity
-        </p>
-      </div>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -135,8 +154,55 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Chart */}
-      <LineChart data={paymentVolume} title="Payment Volume (Last 15 Days)" />
+      {/* Chart - Show 10 transactions with chart type selector */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Transactions (Last 10)</h2>
+          <Select value={chartType} onValueChange={(value) => setChartType(value as ChartType)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select chart type" />
+            </SelectTrigger>
+            <SelectContent>
+              {chartTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {(() => {
+          const chartData = transactions.slice(0, 10).map((t, index) => ({
+            period: `T${index + 1}`,
+            amount: t.amount
+          }))
+
+          switch (chartType) {
+            case "bar":
+              return <BarChart data={chartData} title="Transactions (Last 10)" />
+            case "line":
+              return <LineChart data={chartData} title="Transactions (Last 10)" />
+            case "pie":
+              return <PieChart data={chartData} title="Transactions (Last 10)" />
+            case "donut":
+              return <DonutChart data={chartData} title="Transactions (Last 10)" />
+            case "area":
+              return <AreaChart data={chartData} title="Transactions (Last 10)" />
+            case "column":
+              return <ColumnChart data={chartData} title="Transactions (Last 10)" />
+            case "stacked-bar":
+              return <StackedBarChart data={chartData} title="Transactions (Last 10)" />
+            case "scatter":
+              return <ScatterChart data={chartData} title="Transactions (Last 10)" />
+            case "candlestick":
+              return <CandlestickChart data={chartData} title="Transactions (Last 10)" />
+            case "waterfall":
+              return <WaterfallChart data={chartData} title="Transactions (Last 10)" />
+            default:
+              return <BarChart data={chartData} title="Transactions (Last 10)" />
+          }
+        })()}
+      </div>
     </div>
   )
 }

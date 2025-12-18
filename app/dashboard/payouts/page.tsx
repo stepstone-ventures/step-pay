@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -37,6 +37,27 @@ export default function PayoutsPage() {
   const [status, setStatus] = useState("Show All")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const filteredPayouts = useMemo(() => {
     let filtered = [...payouts]
@@ -99,91 +120,85 @@ export default function PayoutsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Payouts</h1>
-        <p className="text-muted-foreground mt-1">
-          View and manage your payouts
-        </p>
+    <div className="space-y-6 pt-6">
+
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="h-10"
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <Card ref={filterRef}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Filters</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowFilters(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button variant="outline" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button onClick={() => setShowFilters(false)}>Filter</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Filters */}
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-10"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
-          </div>
-
-          {/* Filter Panel */}
-          {showFilters && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Filters</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowFilters(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <Button variant="outline" onClick={handleReset}>
-                    Reset
-                  </Button>
-                  <Button onClick={() => setShowFilters(false)}>Filter</Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
+        <div className="lg:col-span-2">
           {/* Payouts Table */}
           <Card>
             <CardHeader>
@@ -202,6 +217,7 @@ export default function PayoutsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead>Payout ID</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
@@ -210,8 +226,11 @@ export default function PayoutsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPayouts.map((payout) => (
+                    {filteredPayouts.map((payout, index) => (
                       <TableRow key={payout.id}>
+                        <TableCell className="text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
                         <TableCell className="font-medium">{payout.id}</TableCell>
                         <TableCell className="font-medium">
                           {formatCurrency(payout.amount)}
@@ -232,7 +251,7 @@ export default function PayoutsPage() {
 
         {/* Right Panel - Pending Payouts */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Pending Payouts</CardTitle>
             </CardHeader>

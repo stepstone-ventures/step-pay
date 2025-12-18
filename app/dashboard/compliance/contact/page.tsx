@@ -182,18 +182,17 @@ export default function ContactPage() {
 
   if (viewMode === "review") {
     return (
-      <ComplianceAccessGuard step="contact">
+      <ComplianceAccessGuard currentStep="contact">
         <div className="space-y-6">
-          <div>
-            <Link href="/dashboard/compliance">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Compliance
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold mt-4">Contact - Review</h1>
-          <p className="text-muted-foreground mt-1">Review your contact information</p>
-        </div>
+          <div className="pt-6">
+            <div className="flex items-center mb-6">
+              <Link href="/dashboard/compliance">
+                <Button variant="ghost" size="sm" className="h-10">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Compliance
+                </Button>
+              </Link>
+            </div>
 
         <Card>
           <CardHeader>
@@ -320,22 +319,21 @@ export default function ContactPage() {
           </CardContent>
         </Card>
         </div>
+        </div>
       </ComplianceAccessGuard>
     )
   }
 
   return (
-    <ComplianceAccessGuard step="contact">
-      <div className="space-y-6">
-      <div>
+    <ComplianceAccessGuard currentStep="contact">
+      <div className="space-y-6 pt-6">
+      <div className="flex items-center">
         <Link href="/dashboard/compliance">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="h-10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Compliance
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold mt-4">Contact</h1>
-        <p className="text-muted-foreground mt-1">Step 2 of 5: Provide your contact information</p>
       </div>
 
       <Card>

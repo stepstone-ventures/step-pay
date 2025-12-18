@@ -49,13 +49,7 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div>
-        <h1 className="text-3xl font-bold">Collect Payment</h1>
-        <p className="text-muted-foreground mt-1">
-          Accept payments from customers instantly
-        </p>
-      </div>
+    <div className="space-y-6 max-w-4xl pt-6">
 
       <Card>
         <CardHeader>

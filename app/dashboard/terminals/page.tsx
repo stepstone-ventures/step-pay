@@ -9,13 +9,7 @@ import Image from "next/image"
 
 export default function TerminalsPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Terminals</h1>
-        <p className="text-muted-foreground mt-1">
-          Choose between Virtual or Physical terminals
-        </p>
-      </div>
+    <div className="space-y-6 pt-6">
 
       <Tabs defaultValue="virtual" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">

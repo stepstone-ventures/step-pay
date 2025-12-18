@@ -1,0 +1,29 @@
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Home } from "lucide-react"
+
+export default function NotFound() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="max-w-md w-full">
+        <CardHeader>
+          <CardTitle className="text-2xl">404 - Page Not Found</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+          <Button asChild className="w-full">
+            <Link href="/dashboard">
+              <Home className="mr-2 h-4 w-4" />
+              Go to Dashboard
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+

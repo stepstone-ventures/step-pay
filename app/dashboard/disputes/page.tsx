@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -40,6 +40,27 @@ export default function DisputesPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [status, setStatus] = useState("Show All")
   const [searchTransaction, setSearchTransaction] = useState("")
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const filteredDisputes = useMemo(() => {
     let filtered = [...disputes]
@@ -87,77 +108,68 @@ export default function DisputesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Disputes</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage and respond to transaction disputes
-        </p>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
+
+      {/* Filters and Search */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="h-10 w-full sm:w-auto"
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
+
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+          <Input
+            placeholder="Search by transaction ID..."
+            value={searchTransaction}
+            onChange={(e) => setSearchTransaction(e.target.value)}
+            className="pl-9 h-10 w-full"
+          />
+        </div>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <Card ref={filterRef}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Filters</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowFilters(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Filters and Search */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-10"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
-
-            <div className="flex-1 space-y-2 min-w-[200px]">
-              <Label>Search Transaction</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by transaction ID..."
-                  value={searchTransaction}
-                  onChange={(e) => setSearchTransaction(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Filter Panel */}
-          {showFilters && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Filters</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowFilters(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
+        <div className="lg:col-span-2">
           {/* Disputes Table */}
           <Card>
             <CardHeader>
@@ -176,6 +188,7 @@ export default function DisputesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead>Dispute ID</TableHead>
                       <TableHead>Transaction ID</TableHead>
                       <TableHead>Amount</TableHead>
@@ -185,8 +198,11 @@ export default function DisputesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDisputes.map((dispute) => (
+                    {filteredDisputes.map((dispute, index) => (
                       <TableRow key={dispute.id}>
+                        <TableCell className="text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
                         <TableCell className="font-medium">{dispute.id}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {dispute.transactionId}
@@ -212,7 +228,7 @@ export default function DisputesPage() {
 
         {/* Right Sidebar - YouTube Video */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Help & Resources</CardTitle>
             </CardHeader>

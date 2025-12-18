@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +46,28 @@ export default function TransactionSplitsPage() {
   const [splitType, setSplitType] = useState("All")
   const [category, setCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        // Check if click is not on the filter button
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const filteredSplits = useMemo(() => {
     let filtered = [...splits]
@@ -96,132 +118,122 @@ export default function TransactionSplitsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Transaction Splits</h1>
-        <p className="text-muted-foreground mt-1">
-          Split transaction payouts across multiple subaccounts
-        </p>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
+      {/* Filters - Above the horizontal line */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="h-10 w-full sm:w-auto"
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
       </div>
+
+      {showFilters && (
+        <Card ref={filterRef}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Filters</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowFilters(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Subaccount</Label>
+              <Select value={subaccount} onValueChange={setSubaccount}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All</SelectItem>
+                  {mockSubaccounts.map((acc) => (
+                    <SelectItem key={acc} value={acc}>
+                      {acc}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Split Type</Label>
+              <Select value={splitType} onValueChange={setSplitType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {splitTypeOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button variant="outline" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button onClick={() => setShowFilters(false)}>Apply Filters</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-border pt-6">
         {/* Left Side */}
         <div className="space-y-6">
-          {/* Filters and Search */}
-          <div className="space-y-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-10 w-full"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
 
-            {/* Filter Panel */}
-            {showFilters && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Filters</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setShowFilters(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Subaccount</Label>
-                    <Select value={subaccount} onValueChange={setSubaccount}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="All">All</SelectItem>
-                        {mockSubaccounts.map((acc) => (
-                          <SelectItem key={acc} value={acc}>
-                            {acc}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Split Type</Label>
-                    <Select value={splitType} onValueChange={setSplitType}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {splitTypeOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoryOptions.map((opt) => (
-                          <SelectItem key={opt} value={opt}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <Button variant="outline" onClick={handleReset}>
-                      Reset
-                    </Button>
-                    <Button onClick={() => setShowFilters(false)}>Filter</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Search */}
-            <div className="space-y-2">
-              <Label>Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search splits..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Input
+                placeholder="Search splits..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10 w-full"
+              />
           </div>
 
           {/* Empty State or Content */}
@@ -246,6 +258,7 @@ export default function TransactionSplitsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Subaccount</TableHead>
                       <TableHead>Type</TableHead>
@@ -253,8 +266,11 @@ export default function TransactionSplitsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredSplits.map((split) => (
+                    {filteredSplits.map((split, index) => (
                       <TableRow key={split.id}>
+                        <TableCell className="text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
                         <TableCell className="font-medium">{split.name}</TableCell>
                         <TableCell>{split.subaccount}</TableCell>
                         <TableCell>

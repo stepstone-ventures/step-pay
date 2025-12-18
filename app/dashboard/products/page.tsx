@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useRef } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -70,6 +70,27 @@ export default function ProductsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaInputRef = useRef<HTMLInputElement>(null)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const filtered = useMemo(() => {
     let result = [...products]
@@ -180,52 +201,48 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Products</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your product catalog
-          </p>
+    <div className="space-y-6 pt-6">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        {/* Left side - View Mode and Filters */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 border rounded-lg p-1">
+            <Button
+              variant={viewMode === "icon" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setViewMode("icon")}
+              className="h-8 w-8"
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setViewMode("list")}
+              className="h-8 w-8"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Filters
+          </Button>
         </div>
-        <Button onClick={() => setShowAddProduct(true)}>
+
+        {/* Right side - Add Product Button */}
+        <Button onClick={() => setShowAddProduct(true)} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto h-10">
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 border rounded-lg p-1">
-          <Button
-            variant={viewMode === "icon" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setViewMode("icon")}
-            className="h-8 w-8"
-          >
-            <Grid3x3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setViewMode("list")}
-            className="h-8 w-8"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="h-10"
-        >
-          <Filter className="mr-2 h-4 w-4" />
-          Filters
-        </Button>
-      </div>
-
       {showFilters && (
-        <Card>
+        <Card ref={filterRef}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Filters</CardTitle>

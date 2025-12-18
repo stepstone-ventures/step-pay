@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +46,27 @@ export default function OrdersPage() {
   const [status, setStatus] = useState("All")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFilters && filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        const filterButton = (event.target as HTMLElement).closest('button')
+        if (!filterButton || !filterButton.textContent?.includes('Filters')) {
+          setShowFilters(false)
+        }
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const filtered = useMemo(() => {
     let result = [...orders]
@@ -131,19 +152,13 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Orders</h1>
-        <p className="text-muted-foreground mt-1">
-          View and manage customer orders
-        </p>
-      </div>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className="h-10"
+          className="h-10 w-full sm:w-auto"
         >
           <Filter className="mr-2 h-4 w-4" />
           Filters
@@ -151,7 +166,7 @@ export default function OrdersPage() {
       </div>
 
       {showFilters && (
-        <Card>
+        <Card ref={filterRef}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Filters</CardTitle>
@@ -218,8 +233,8 @@ export default function OrdersPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-border pt-6">
         {/* Left Side */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-6">
             <CardTitle>Orders</CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleExportCSV}>
@@ -262,6 +277,7 @@ export default function OrdersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead className="w-12">
                         <input
                           type="checkbox"
@@ -283,8 +299,11 @@ export default function OrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((order) => (
+                    {filtered.map((order, index) => (
                       <TableRow key={order.id}>
+                        <TableCell className="text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
                         <TableCell>
                           <input
                             type="checkbox"
@@ -319,8 +338,8 @@ export default function OrdersPage() {
         </div>
 
         {/* Right Side - Summary */}
-        <div className="space-y-6 border-l border-border pl-6">
-          <Card>
+        <div className="border-l border-border pl-6">
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Summary</CardTitle>
             </CardHeader>
