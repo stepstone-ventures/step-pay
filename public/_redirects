@@ -1,5 +1,4 @@
 # Netlify redirects for Next.js App Router
 # The @netlify/plugin-nextjs handles routing automatically
-# This file is kept for fallback support
-/*    /.netlify/functions/next    200
+/* /.netlify/functions/next 200
 
