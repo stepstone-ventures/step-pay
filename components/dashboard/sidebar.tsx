@@ -96,9 +96,9 @@ export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; s
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-6 pt-0">
-      {/* Logo Section - No spacing from top edge */}
-      <div className="flex items-start justify-center px-2 pt-0">
+    <div className="flex h-full flex-col overflow-hidden px-4 pb-6 pt-0">
+      {/* Logo Section - Fixed at top, always visible */}
+      <div className="flex items-start justify-center px-2 pt-0 shrink-0 sticky top-0 z-10 bg-sidebar">
         <div className="flex items-center justify-center w-full relative">
           <img 
             src="/steppay-logo.png" 
@@ -118,8 +118,8 @@ export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; s
           )}
         </div>
       </div>
-      {/* Navigation Section - Aligned with filter tools level (pt-6 equivalent) */}
-      <div className="flex flex-col flex-1 min-h-0">
+      {/* Navigation Section - Scrollable middle section */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <nav className="flex flex-col shrink-0 pt-6 pb-4">
           <ul role="list" className="flex flex-col gap-y-1">
             {navigation.map((item) => {
@@ -207,10 +207,11 @@ export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; s
           })}
           </ul>
         </nav>
-        
-        {/* Bottom section for Audit Logs and Settings - Always at bottom */}
-        <div className="mt-auto pt-4 border-t border-sidebar-border">
-          <ul role="list" className="space-y-1">
+      </div>
+      
+      {/* Bottom section for Audit Logs and Settings - Fixed at bottom, always visible */}
+      <div className="shrink-0 sticky bottom-0 pt-4 border-t border-sidebar-border bg-sidebar">
+        <ul role="list" className="space-y-1">
             <li>
               <Link
                 href="/dashboard/audit-logs"
@@ -252,7 +253,6 @@ export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; s
               </Link>
             </li>
           </ul>
-        </div>
       </div>
     </div>
   )
