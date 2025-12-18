@@ -23,7 +23,8 @@
     "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^4.39.0",
+    "@netlify/plugin-nextjs": "^4.41.3",
+    "@radix-ui/react-arrow": "^1.1.8",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^20.14.12",
     "@types/react": "^18.3.3",

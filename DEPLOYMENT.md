@@ -1,6 +1,6 @@
 # Netlify Deployment Guide for StepPay
 
-This guide covers deploying StepPay to Netlify with all mock data intact.
+This guide covers deploying StepPay to Netlify with all features and mock data intact.
 
 ## Quick Deploy
 
@@ -17,7 +17,7 @@ This guide covers deploying StepPay to Netlify with all mock data intact.
 3. **Auto-configured Settings**
    - Netlify will automatically detect settings from `netlify.toml`:
      - **Build command**: `npm run build`
-     - **Publish directory**: `.next`
+     - **Publish directory**: Handled automatically by plugin
      - **Node version**: 20 (from `.nvmrc`)
      - **Plugin**: `@netlify/plugin-nextjs` (installed automatically)
 
@@ -54,10 +54,10 @@ The build process:
 
 ### `netlify.toml`
 Main Netlify configuration file specifying:
-- Build command and publish directory
+- Build command
 - Next.js plugin
-- Node.js version
-- Redirects for client-side routing
+- Node.js version (20)
+- The plugin automatically handles publish directory and routing
 
 ### `.nvmrc`
 Specifies Node.js version 20 for consistent builds
@@ -66,7 +66,10 @@ Specifies Node.js version 20 for consistent builds
 Handles client-side routing for Next.js pages
 
 ### `next.config.ts`
-Includes configuration to ensure JSON data files are included in the build
+Includes configuration for image optimization (unoptimized for Netlify)
+
+### `.netlifyignore`
+Specifies files to exclude from Netlify build (but not from Git)
 
 ## Mock Data
 
@@ -76,73 +79,50 @@ All mock data is preserved in deployment:
 - `/data/payment-volume.json` - Chart data
 
 These files are:
-- Included in the build automatically
+- Included in the build automatically (not in `.netlifyignore`)
 - Accessible via API routes (`/api/*`)
-- Loaded at build time and served as static JSON
+- Loaded at runtime by serverless functions
 
 ## API Routes
 
-All API routes work on Netlify as serverless functions:
-- `/api/transactions` - Returns transaction data
-- `/api/customers` - Returns customer data
-- `/api/payment-volume` - Returns chart data
-- `/api/dashboard/stats` - Returns dashboard statistics
+The following API routes are available as serverless functions:
+- `/api/transactions` - Get all transactions
+- `/api/dashboard/stats` - Get dashboard statistics
+- `/api/payment-volume` - Get payment volume data
+
+All routes return JSON data from the `/data` directory.
+
+## Environment Variables
+
+No environment variables are required for this demo application. All data is static and mocked.
+
+## Post-Deployment
+
+After deployment, your site will be available at:
+- Production: `https://your-site-name.netlify.app`
+- Preview deployments: `https://deploy-preview-X--your-site-name.netlify.app`
+
+All pages and API routes will work as expected with the mock data intact.
 
 ## Troubleshooting
 
 ### Build Fails
-
-1. **Check Node version**: Ensure using Node 20 (specified in `.nvmrc`)
-2. **Check dependencies**: Run `npm install` locally first
-3. **Check logs**: Review Netlify build logs for specific errors
+- Ensure Node.js version 20 is specified (check `.nvmrc`)
+- Verify all dependencies are in `package.json`
+- Check build logs for specific errors
 
 ### API Routes Not Working
+- Ensure `/data` directory is not in `.netlifyignore`
+- Verify API route files are in `app/api/` directory
+- Check that JSON files are valid
 
-1. Ensure `@netlify/plugin-nextjs` is installed (auto-installed)
-2. Check that API routes are in `/app/api` directory
-3. Verify JSON data files exist in `/data` directory
-
-### Client-Side Routing Issues
-
-1. Ensure `public/_redirects` file exists
-2. Check `netlify.toml` redirects configuration
-3. Verify all links use Next.js `Link` component
-
-### Missing Data
-
-1. Verify JSON files are in `/data` directory
-2. Check `next.config.ts` includes data files in tracing
-3. Ensure JSON files are committed to Git
-
-## Post-Deployment Checklist
-
-- [ ] Site loads correctly
-- [ ] All pages are accessible
-- [ ] API routes return data
-- [ ] Dashboard displays mock data
-- [ ] Client-side routing works
-- [ ] Images and assets load
-- [ ] Mobile responsive design works
-
-## Custom Domain (Optional)
-
-1. Go to Site settings → Domain management
-2. Click "Add custom domain"
-3. Follow DNS configuration instructions
-4. Netlify will auto-provision SSL certificate
-
-## Environment Variables
-
-This demo doesn't require environment variables. If you add real backend integration later:
-1. Go to Site settings → Environment variables
-2. Add required variables
-3. Redeploy for changes to take effect
+### Routing Issues
+- Verify `public/_redirects` file exists
+- Check that `@netlify/plugin-nextjs` is installed
+- Ensure `netlify.toml` has the plugin configured
 
 ## Support
 
-For issues:
-- Check [Netlify Docs](https://docs.netlify.com/)
-- Review [Next.js on Netlify](https://docs.netlify.com/integrations/frameworks/nextjs/)
-- Check build logs in Netlify dashboard
-
-
+For issues or questions, refer to:
+- [Netlify Next.js Documentation](https://docs.netlify.com/integrations/frameworks/next-js/)
+- [Next.js Deployment Documentation](https://nextjs.org/docs/deployment)

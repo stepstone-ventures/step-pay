@@ -50,8 +50,9 @@ export function ScatterChart({ data, title }: ScatterChartProps) {
                 r="6"
                 fill="hsl(var(--primary))"
                 className="hover:r-8 transition-all"
-                title={`${point.label}: ${point.amount.toLocaleString()}`}
-              />
+              >
+                <title>{`${point.label}: ${point.amount.toLocaleString()}`}</title>
+              </circle>
             ))}
           </svg>
         </div>

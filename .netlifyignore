@@ -23,4 +23,10 @@ build
 *.swp
 *.swo
 
+# Backup files
+*.backup
+*.bak
+
+# Note: data/ directory is NOT ignored - it needs to be included for API routes
+
 

@@ -28,9 +28,16 @@ export function ThemeProvider({
   storageKey = "step-pay-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(
-    () => (typeof window !== "undefined" && (localStorage.getItem(storageKey) as Theme)) || defaultTheme
-  )
+  const [theme, setTheme] = React.useState<Theme>(defaultTheme)
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(storageKey) as Theme
+      if (stored && (stored === "light" || stored === "dark")) {
+        setTheme(stored)
+      }
+    }
+  }, [storageKey])
 
   React.useEffect(() => {
     const root = window.document.documentElement

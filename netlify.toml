@@ -1,6 +1,6 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  # Publish directory is handled automatically by @netlify/plugin-nextjs
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -8,9 +8,6 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Redirects for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/next"
-  status = 200
+# Redirects for client-side routing (handled by public/_redirects)
+# The plugin automatically handles Next.js routing
 
