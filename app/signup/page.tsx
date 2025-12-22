@@ -98,19 +98,19 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-xl mb-5 shadow-sm">
             <span className="text-primary-foreground font-bold text-xl">S</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Create your account</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Create your account</h1>
           <p className="text-muted-foreground">
             Start accepting payments in minutes
           </p>
         </div>
 
-        <Card className="border-border/50 shadow-lg bg-card">
+        <Card className="border-border/50 shadow-lg">
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>

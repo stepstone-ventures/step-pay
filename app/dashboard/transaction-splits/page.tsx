@@ -15,6 +15,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Split, Filter, X, Search, Plus } from "lucide-react"
 
 interface TransactionSplit {
@@ -38,15 +46,25 @@ const statusOptions = ["All", "Active", "Disabled"]
 const splitTypeOptions = ["All", "Flat", "Percentage"]
 const categoryOptions = ["All", "Static", "Dynamic"]
 
+const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const splitTypes = ["Percentage Split", "Flat Split"]
+
 export default function TransactionSplitsPage() {
   const [splits] = useState<TransactionSplit[]>(mockSplits)
   const [showFilters, setShowFilters] = useState(false)
+  const [showAddSplitGroup, setShowAddSplitGroup] = useState(false)
   const [subaccount, setSubaccount] = useState("All")
   const [status, setStatus] = useState("All")
   const [splitType, setSplitType] = useState("All")
   const [category, setCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const filterRef = useRef<HTMLDivElement>(null)
+  const [newSplitGroup, setNewSplitGroup] = useState({
+    groupName: "",
+    splitCurrency: "GHS",
+    splitType: "Percentage Split",
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Close filters when clicking outside
   useEffect(() => {
@@ -117,10 +135,38 @@ export default function TransactionSplitsPage() {
     }
   }
 
+  const handleCreateSplitGroup = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!newSplitGroup.groupName.trim()) {
+      newErrors.groupName = "Group name is required"
+    }
+    if (!newSplitGroup.splitCurrency) {
+      newErrors.splitCurrency = "Split currency is required"
+    }
+    if (!newSplitGroup.splitType) {
+      newErrors.splitType = "Split type is required"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    // Create split group logic here
+    setNewSplitGroup({
+      groupName: "",
+      splitCurrency: "GHS",
+      splitType: "Percentage Split",
+    })
+    setErrors({})
+    setShowAddSplitGroup(false)
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
-      {/* Filters - Above the horizontal line */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+      {/* Filters and Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
@@ -128,6 +174,13 @@ export default function TransactionSplitsPage() {
         >
           <Filter className="mr-2 h-4 w-4" />
           Filters
+        </Button>
+        <Button 
+          className="bg-green-600 hover:bg-green-700 h-10 w-full sm:w-auto"
+          onClick={() => setShowAddSplitGroup(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add New Split Group
         </Button>
       </div>
 
@@ -244,7 +297,10 @@ export default function TransactionSplitsPage() {
               <p className="text-muted-foreground mb-6">
                 Split transaction payouts across multiple subaccounts
               </p>
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => setShowAddSplitGroup(true)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Split Group
               </Button>
@@ -289,6 +345,90 @@ export default function TransactionSplitsPage() {
         {/* Right Side - Empty for now */}
         <div className="hidden lg:block border-l border-border pl-6"></div>
       </div>
+
+      {/* Add New Split Group Dialog */}
+      <Dialog open={showAddSplitGroup} onOpenChange={setShowAddSplitGroup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Split Group</DialogTitle>
+            <DialogDescription>
+              Create a new split group to manage transaction splits
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupName">Group Name *</Label>
+              <Input
+                id="groupName"
+                placeholder="Enter group name"
+                value={newSplitGroup.groupName}
+                onChange={(e) => {
+                  setNewSplitGroup({ ...newSplitGroup, groupName: e.target.value })
+                  if (errors.groupName) setErrors({ ...errors, groupName: "" })
+                }}
+                className={errors.groupName ? "border-destructive" : ""}
+              />
+              {errors.groupName && (
+                <p className="text-sm text-destructive">{errors.groupName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="splitCurrency">Split Currency *</Label>
+              <Select
+                value={newSplitGroup.splitCurrency}
+                onValueChange={(value) => {
+                  setNewSplitGroup({ ...newSplitGroup, splitCurrency: value })
+                  if (errors.splitCurrency) setErrors({ ...errors, splitCurrency: "" })
+                }}
+              >
+                <SelectTrigger id="splitCurrency" className={errors.splitCurrency ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency} value={currency}>
+                      {currency}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.splitCurrency && (
+                <p className="text-sm text-destructive">{errors.splitCurrency}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="splitType">Choose Split Type *</Label>
+              <Select
+                value={newSplitGroup.splitType}
+                onValueChange={(value) => {
+                  setNewSplitGroup({ ...newSplitGroup, splitType: value })
+                  if (errors.splitType) setErrors({ ...errors, splitType: "" })
+                }}
+              >
+                <SelectTrigger id="splitType" className={errors.splitType ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Select split type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {splitTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.splitType && (
+                <p className="text-sm text-destructive">{errors.splitType}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="flex-row justify-between sm:justify-between">
+            <Button variant="outline" onClick={() => setShowAddSplitGroup(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateSplitGroup}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, Search, Filter, X, Download, Plus } from "lucide-react"
 import type { Customer } from "@/lib/mock-data"
 
@@ -37,8 +38,20 @@ export default function CustomersPage() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "+233",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const countryCodes = [
+    { code: "+233", country: "Ghana" },
+    { code: "+234", country: "Nigeria" },
+    { code: "+254", country: "Kenya" },
+    { code: "+27", country: "South Africa" },
+    { code: "+1", country: "United States" },
+    { code: "+44", country: "United Kingdom" },
+    { code: "+225", country: "Côte d'Ivoire" },
+    { code: "+221", country: "Senegal" },
+  ]
 
   // Fetch customers from API route
   useEffect(() => {
@@ -106,7 +119,7 @@ export default function CustomersPage() {
       id: `CUST-${Date.now()}`,
       name: `${newCustomer.firstName} ${newCustomer.lastName}`,
       email: newCustomer.email,
-      phone: newCustomer.phone,
+      phone: `${newCustomer.countryCode} ${newCustomer.phone}`,
       totalTransactions: 0,
       totalAmount: 0,
       lastTransaction: new Date().toISOString(),
@@ -115,7 +128,7 @@ export default function CustomersPage() {
     }
 
     setCustomers([customer, ...customers])
-    setNewCustomer({ firstName: "", lastName: "", email: "", phone: "" })
+    setNewCustomer({ firstName: "", lastName: "", email: "", phone: "", countryCode: "+233" })
     setErrors({})
     setShowAddCustomer(false)
   }
@@ -328,23 +341,42 @@ export default function CustomersPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+233 24 123 4567"
-                value={newCustomer.phone}
-                onChange={(e) => {
-                  setNewCustomer({ ...newCustomer, phone: e.target.value })
-                  if (errors.phone) setErrors({ ...errors, phone: "" })
-                }}
-                className={errors.phone ? "border-destructive" : ""}
-              />
+              <div className="flex gap-2">
+                <Select
+                  value={newCustomer.countryCode}
+                  onValueChange={(value) => {
+                    setNewCustomer({ ...newCustomer, countryCode: value })
+                  }}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countryCodes.map((item) => (
+                      <SelectItem key={item.code} value={item.code}>
+                        {item.code} ({item.country})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="24 123 4567"
+                  value={newCustomer.phone}
+                  onChange={(e) => {
+                    setNewCustomer({ ...newCustomer, phone: e.target.value })
+                    if (errors.phone) setErrors({ ...errors, phone: "" })
+                  }}
+                  className={`flex-1 ${errors.phone ? "border-destructive" : ""}`}
+                />
+              </div>
               {errors.phone && (
                 <p className="text-sm text-destructive">{errors.phone}</p>
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-row justify-between sm:justify-between">
             <Button variant="outline" onClick={() => setShowAddCustomer(false)}>
               Cancel
             </Button>
