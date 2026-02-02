@@ -51,16 +51,11 @@ export default function Home() {
         <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
           StepPay helps Ghanaian merchants receive payments from customers around the world and locally with ease and security.
         </p>
-        <div className="flex justify-center space-x-4">
+        <div className="flex justify-center">
           <Link href="/signup">
             <Button size="lg">
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button size="lg" variant="outline">
-              View Demo
             </Button>
           </Link>
         </div>
@@ -361,7 +356,7 @@ export default function Home() {
                 </div>
               </div>
               <Link href="/signup">
-                <Button size="lg">
+                <Button size="lg" variant="secondary">
                   Get started for free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

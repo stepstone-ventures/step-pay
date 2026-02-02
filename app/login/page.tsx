@@ -1,64 +1,92 @@
 "use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { createClient } from "@supabase/supabase-js"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
 
+// Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  useEffect(() => {
+    const confirmed = searchParams.get("confirmed")
+    const error = searchParams.get("error")
 
-  const handleSubmit = (e: React.FormEvent) => {
+    if (confirmed === "true") {
+      setSuccessMessage(
+        "Your account has been successfully verified! Please sign in with your credentials to continue."
+      )
+    }
+
+    if (error === "verification_failed") {
+      setErrors({ general: "Email verification failed. Please try signing up again or contact support." })
+    }
+
+    if (error === "unconfirmed") {
+      const emailParam = searchParams.get("email")
+      setErrors({
+        general: `Please confirm your email (${emailParam || "your email"}) before logging in.`,
+      })
+    }
+  }, [searchParams])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newErrors: { email?: string; password?: string } = {}
+    setLoading(true)
+    setErrors({})
+    setSuccessMessage(null)
 
-    // Frontend validation only
-    if (!email) {
-      newErrors.email = "Email is required"
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required"
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    if (!email || !password) {
+      setErrors({ general: "Email and password are required" })
+      setLoading(false)
       return
     }
 
-    setErrors({})
-    // Check compliance status and redirect accordingly
-    const complianceComplete = localStorage.getItem("compliance_complete") === "true"
-    const complianceSteps = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
-    
-    if (!complianceComplete) {
-      // Find the first incomplete step
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setErrors({ general: error.message })
+        setLoading(false)
+        return
+      }
+
+      // Successful login
+      const complianceComplete = localStorage.getItem("compliance_complete") === "true"
+      const complianceSteps = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
+
       const steps = ["profile", "contact", "owner", "account", "service-agreement"]
       const nextStep = steps.find((step) => !complianceSteps.includes(step))
-      if (nextStep) {
+
+      if (!complianceComplete && nextStep) {
         router.push(`/dashboard/compliance/${nextStep}`)
       } else {
-        router.push("/dashboard/compliance/profile")
+        router.push("/dashboard")
       }
-    } else {
-      router.push("/dashboard")
+    } catch (err: any) {
+      setErrors({ general: "An unexpected error occurred. Please try again." })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -70,17 +98,13 @@ export default function LoginPage() {
             <span className="text-primary-foreground font-bold text-xl">S</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back</h1>
-          <p className="text-muted-foreground">
-            Sign in to your StepPay account
-          </p>
+          <p className="text-muted-foreground">Sign in to your StepPay account</p>
         </div>
 
         <Card className="border-border/50 shadow-lg">
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
+            <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,15 +115,9 @@ export default function LoginPage() {
                   type="email"
                   placeholder="merchant@email.com"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (errors.email) setErrors({ ...errors, email: undefined })
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
                   className={errors.email ? "border-destructive" : ""}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -110,10 +128,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value)
-                      if (errors.password) setErrors({ ...errors, password: undefined })
-                    }}
+                    onChange={(e) => setPassword(e.target.value)}
                     className={errors.password ? "border-destructive pr-10" : "pr-10"}
                   />
                   <button
@@ -121,17 +136,22 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
               </div>
+
+              {successMessage && (
+                <p className="text-sm text-green-600 text-center font-medium">
+                  {successMessage}
+                </p>
+              )}
+
+              {errors.general && (
+                <p className="text-sm text-destructive text-center">
+                  {errors.general}
+                </p>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -140,16 +160,13 @@ export default function LoginPage() {
                     Remember me
                   </Label>
                 </div>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
+                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
@@ -165,4 +182,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

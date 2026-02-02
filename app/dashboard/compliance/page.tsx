@@ -6,7 +6,11 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Circle, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { createClient } from "@supabase/supabase-js"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const steps = [
   { id: "profile", name: "Profile", href: "/dashboard/compliance/profile" },
@@ -19,29 +23,66 @@ const steps = [
 export default function CompliancePage() {
   const router = useRouter()
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const updateSteps = () => {
-      const saved = localStorage.getItem("compliance_steps")
-      if (saved) {
-        try {
-          setCompletedSteps(new Set(JSON.parse(saved)))
-        } catch (e) {
-          console.error("Error loading compliance steps:", e)
+    const loadComplianceStatus = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+          router.push("/login")
+          return
         }
+
+        const { data: merchant, error } = await supabase
+          .from("merchants")
+          .select(`
+            profile_completed,
+            contact_completed,
+            owner_completed,
+            account_completed,
+            service_agreement_completed,
+            completed_at
+          `)
+          .eq("user_id", user.id)
+          .maybeSingle()
+
+        if (error || !merchant) {
+          console.error("Merchant fetch error:", error)
+          return
+        }
+
+        const completed = new Set<string>()
+
+        if (merchant.profile_completed) completed.add("profile")
+        if (merchant.contact_completed) completed.add("contact")
+        if (merchant.owner_completed) completed.add("owner")
+        if (merchant.account_completed) completed.add("account")
+        if (merchant.service_agreement_completed) completed.add("service-agreement")
+
+        setCompletedSteps(completed)
+      } catch (err) {
+        console.error("Compliance load error:", err)
+      } finally {
+        setLoading(false)
       }
     }
-    
-    updateSteps()
-    const interval = setInterval(updateSteps, 1000)
-    return () => clearInterval(interval)
-  }, [])
+
+    loadComplianceStatus()
+  }, [router])
 
   const handleStart = () => {
     router.push("/dashboard/compliance/profile")
   }
 
-  const allCompleted = steps.every((step) => completedSteps.has(step.id))
+  const allCompleted = steps.every(step => completedSteps.has(step.id))
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading compliance status...</div>
+  }
 
   return (
     <div className="space-y-6 pt-6">
@@ -56,6 +97,7 @@ export default function CompliancePage() {
           <div className="space-y-4">
             {steps.map((step, index) => {
               const isCompleted = completedSteps.has(step.id)
+
               return (
                 <div
                   key={step.id}
@@ -67,12 +109,11 @@ export default function CompliancePage() {
                     ) : (
                       <Circle className="h-6 w-6 text-muted-foreground" />
                     )}
-                    <div>
-                      <div className="font-medium">
-                        Step {index + 1}: {step.name}
-                      </div>
+                    <div className="font-medium">
+                      Step {index + 1}: {step.name}
                     </div>
                   </div>
+
                   <Link href={step.href}>
                     <Button variant={isCompleted ? "outline" : "default"}>
                       {isCompleted ? "Review" : "Start"}
@@ -97,7 +138,9 @@ export default function CompliancePage() {
             <div className="mt-6 pt-6 border-t border-border">
               <div className="flex items-center justify-center space-x-2 text-green-600">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">All steps completed! Your account is compliant.</span>
+                <span className="font-medium">
+                  All steps completed. Your account is compliant.
+                </span>
               </div>
             </div>
           )}
@@ -106,4 +149,3 @@ export default function CompliancePage() {
     </div>
   )
 }
-
