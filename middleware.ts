@@ -1,11 +1,13 @@
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+// middleware.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'  // ← This import was missing
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
 
-  const cookieStore = cookies()  // Use cookies from next/headers
+  const cookieStore = cookies()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +19,7 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options)
+            cookieStore.set(name, value, options)
           })
         },
       },
@@ -34,6 +36,7 @@ export async function middleware(req: NextRequest) {
     if (!session) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
+
     if (!session.user.email_confirmed_at) {
       return NextResponse.redirect(
         new URL(
