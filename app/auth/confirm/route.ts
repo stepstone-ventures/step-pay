@@ -17,6 +17,12 @@ function normalizeOtpType(type: string | null) {
   return OTP_TYPES.has(type as EmailOtpType) ? (type as EmailOtpType) : null
 }
 
+function normalizeNextPath(nextPath: string | null) {
+  if (!nextPath) return null
+  if (!nextPath.startsWith("/") || nextPath.startsWith("//")) return null
+  return nextPath
+}
+
 function createSupabaseRouteClient() {
   const cookieStore = cookies()
   return createServerClient(
@@ -56,7 +62,7 @@ async function ensureMerchantRow(supabase: ReturnType<typeof createSupabaseRoute
 
   const { error } = await supabase.from("merchants").insert({
     user_id: user.id,
-    business_name: metadata.business_name ?? null,
+    business_name: metadata.business_name ?? metadata.full_name ?? metadata.name ?? null,
     email: user.email ?? null,
     phone_number: metadata.phone_number ?? null,
     country: metadata.country ?? null,
@@ -69,6 +75,7 @@ async function ensureMerchantRow(supabase: ReturnType<typeof createSupabaseRoute
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
+  const nextPath = normalizeNextPath(requestUrl.searchParams.get("next"))
   const accessToken = requestUrl.searchParams.get("access_token")
   const refreshToken = requestUrl.searchParams.get("refresh_token")
   const tokenHash = requestUrl.searchParams.get("token_hash")
@@ -196,6 +203,6 @@ export async function GET(request: Request) {
   }
 
   await ensureMerchantRow(supabase)
-
-  return NextResponse.redirect(new URL("/login?confirmed=true", request.url))
+  const redirectPath = nextPath ?? "/login?confirmed=true"
+  return NextResponse.redirect(new URL(redirectPath, request.url))
 }

@@ -1,5 +1,5 @@
 "use client"
-import { Suspense, useState, useEffect, useRef } from "react"
+import { Suspense, useState, useEffect, useRef, type SVGProps } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -17,10 +17,34 @@ import { ShareButton } from "@/components/animate-ui/components/community/share-
 import { UserPresenceAvatar } from "@/components/animate-ui/components/community/user-presence-avatar"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { getAuthRedirectOrigin } from "@/lib/auth/get-auth-redirect-origin"
 import { ChevronDown, Eye, EyeOff } from "lucide-react"
 
 const AUTH_COOKIE_SYNC_ATTEMPTS = 8
 const AUTH_COOKIE_SYNC_DELAY_MS = 120
+
+function GoogleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        d="M22 12.3c0-.8-.1-1.4-.2-2.1H12v4h5.6c-.1 1-.8 2.5-2.3 3.5l3.5 2.7c2.1-1.9 3.2-4.8 3.2-8.1Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 22c2.8 0 5.2-.9 6.9-2.5l-3.5-2.7c-.9.7-2.2 1.2-3.4 1.2-2.8 0-5.2-1.9-6.1-4.4l-3.6 2.8A10 10 0 0 0 12 22Z"
+        fill="#34A853"
+      />
+      <path
+        d="M5.9 13.6c-.2-.7-.3-1.1-.3-1.6s.1-1 .3-1.6l-3.6-2.8A10 10 0 0 0 2 12c0 1.6.4 3.1 1.1 4.4l2.8-2.1Z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.9c1.7 0 3.2.6 4.3 1.7L19.1 5C17.2 3.2 14.8 2 12 2a10 10 0 0 0-8.8 5.6l3.6 2.8c.9-2.5 3.3-4.5 6.2-4.5Z"
+        fill="#EA4335"
+      />
+    </svg>
+  )
+}
 
 export default function LoginPage() {
   return (
@@ -42,6 +66,7 @@ function LoginPageContent() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
 
   const getSupabaseClient = () => {
@@ -220,6 +245,39 @@ function LoginPageContent() {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true)
+    setErrors({})
+    setSuccessMessage(null)
+
+    try {
+      const supabase = getSupabaseClient()
+      const redirectUrl = new URL("/auth/confirm", getAuthRedirectOrigin())
+      redirectUrl.searchParams.set("next", "/dashboard")
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectUrl.toString(),
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (data.url) {
+        window.location.assign(data.url)
+        return
+      }
+
+      throw new Error("Could not start Google sign in.")
+    } catch (err: any) {
+      setErrors({ general: err.message || "Could not start Google sign in." })
+      setGoogleLoading(false)
+    }
+  }
+
   const tabDescription =
     activeTab === "account"
       ? "Fill in your business details to get started."
@@ -392,8 +450,27 @@ function LoginPageContent() {
                   </p>
                 )}
 
-                <LiquidButton type="submit" className="w-full py-3 text-lg" disabled={loading}>
+                <LiquidButton type="submit" className="w-full py-3 text-lg" disabled={loading || googleLoading}>
                   {loading ? "Signing in..." : "Sign In"}
+                </LiquidButton>
+
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border/60" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+
+                <LiquidButton
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  className="w-full py-3 text-lg border border-border/60"
+                  disabled={loading || googleLoading}
+                >
+                  <GoogleIcon className="mr-2 h-5 w-5 shrink-0" />
+                  {googleLoading ? "Redirecting..." : "Sign in with Google"}
                 </LiquidButton>
               </form>
 
