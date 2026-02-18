@@ -88,6 +88,8 @@ export function MotionCarousel({
               alt={activeItem.alt}
               fill
               sizes="(max-width: 1024px) 100vw, 1200px"
+              quality={82}
+              fetchPriority={activeIndex === 0 ? "high" : "auto"}
               className="object-cover"
               priority={activeIndex === 0}
             />
@@ -133,4 +135,3 @@ export function MotionCarousel({
     </div>
   );
 }
-

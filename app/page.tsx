@@ -157,6 +157,7 @@ export default function Home() {
                       alt="StepPay verification"
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
+                      quality={82}
                       className="object-cover"
                     />
                   </div>
@@ -181,6 +182,7 @@ export default function Home() {
                       alt="StepPay financial setup"
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
+                      quality={82}
                       className="object-cover"
                     />
                   </div>
@@ -205,6 +207,7 @@ export default function Home() {
                       alt="StepPay shop front"
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
+                      quality={82}
                       className="object-cover"
                     />
                   </div>
@@ -229,6 +232,7 @@ export default function Home() {
                       alt="StepPay payments dashboard"
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
+                      quality={82}
                       className="object-cover"
                     />
                   </div>
