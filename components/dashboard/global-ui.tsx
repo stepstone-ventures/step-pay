@@ -20,8 +20,6 @@ import { LiquidButton } from "@/components/ui/liquid-button"
 import { cn } from "@/lib/utils"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
-const supabase = createSupabaseBrowserClient()
-
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/transactions": "Transactions",
@@ -90,6 +88,14 @@ export function GlobalUI({
   const [pictureMenuOpen, setPictureMenuOpen] = useState(false)
   const [referMenuOpen, setReferMenuOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
+
+  const getSupabaseClient = () => {
+    if (!supabaseRef.current) {
+      supabaseRef.current = createSupabaseBrowserClient()
+    }
+    return supabaseRef.current
+  }
 
   const pageTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
@@ -120,7 +126,7 @@ export function GlobalUI({
 
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await getSupabaseClient().auth.getUser()
 
       if (user?.email) {
         setUserEmail(user.email)
@@ -150,7 +156,7 @@ export function GlobalUI({
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut()
+      await getSupabaseClient().auth.signOut()
     } finally {
       window.location.assign("/login")
     }

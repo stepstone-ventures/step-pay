@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -19,7 +19,6 @@ import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { ChevronDown, Eye, EyeOff } from "lucide-react"
 
-const supabase = createSupabaseBrowserClient()
 const AUTH_COOKIE_SYNC_ATTEMPTS = 8
 const AUTH_COOKIE_SYNC_DELAY_MS = 120
 
@@ -35,8 +34,17 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
+
+  const getSupabaseClient = () => {
+    if (!supabaseRef.current) {
+      supabaseRef.current = createSupabaseBrowserClient()
+    }
+    return supabaseRef.current
+  }
 
   const waitForSessionPersistence = async (expectedUserId?: string) => {
+    const supabase = getSupabaseClient()
     for (let attempt = 0; attempt < AUTH_COOKIE_SYNC_ATTEMPTS; attempt += 1) {
       const {
         data: { session },
@@ -140,6 +148,7 @@ export default function LoginPage() {
     }
 
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

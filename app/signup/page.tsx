@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -317,8 +317,6 @@ const normalizePhoneCodeOptions = (options: RawPhoneCodeOption[]): PhoneCodeOpti
 
 const NORMALIZED_FALLBACK_PHONE_CODES = normalizePhoneCodeOptions(FALLBACK_PHONE_CODES)
 
-const supabase = createSupabaseBrowserClient()
-
 export default function SignupPage() {
   const [formData, setFormData] = useState({
     businessName: "",
@@ -339,6 +337,14 @@ export default function SignupPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
+
+  const getSupabaseClient = () => {
+    if (!supabaseRef.current) {
+      supabaseRef.current = createSupabaseBrowserClient()
+    }
+    return supabaseRef.current
+  }
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -473,6 +479,7 @@ export default function SignupPage() {
     }
 
     try {
+      const supabase = getSupabaseClient()
       const fullPhoneNumber = `${formData.phoneCode}${formData.phone}`.replace(/[^\d+]/g, "")
 
       const { data: { user }, error } = await supabase.auth.signUp({
