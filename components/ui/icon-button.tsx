@@ -1,14 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { motion, HTMLMotionProps } from "framer-motion"
+import { motion, type HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-interface IconButtonProps extends HTMLMotionProps<"button"> {
+interface IconButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
+  children?: React.ReactNode
   variant?: "default" | "accent" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg"
   hoverScale?: number
   tapScale?: number
+}
+
+type Particle = {
+  x: number
+  y: number
+  id: number
+  angle: number
 }
 
 export function IconButton({
@@ -18,17 +26,21 @@ export function IconButton({
   size = "default",
   hoverScale = 1.05,
   tapScale = 0.95,
+  onClick,
   ...props
 }: IconButtonProps) {
-  const [particles, setParticles] = React.useState<Array<{ x: number; y: number; id: number }>>([])
+  const [particles, setParticles] = React.useState<Particle[]>([])
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(e)
+    if (e.defaultPrevented) return
+
     const rect = e.currentTarget.getBoundingClientRect()
     const centerX = rect.width / 2
     const centerY = rect.height / 2
 
     // Create particles
-    const newParticles = Array.from({ length: 6 }, (_, i) => ({
+    const newParticles: Particle[] = Array.from({ length: 6 }, (_, i) => ({
       x: centerX,
       y: centerY,
       id: Date.now() + i,
