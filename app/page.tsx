@@ -12,7 +12,6 @@ import { HoleBackground } from "@/components/ui/hole-background"
 import { GravityStarsBackground } from "@/components/ui/gravity-stars-background"
 import { RollingText } from "@/components/animate-ui/primitives/texts/rolling"
 import { RotatingText } from "@/components/animate-ui/primitives/texts/rotating"
-import { MotionCarousel } from "@/components/animate-ui/components/community/motion-carousel"
 import { ShareButton } from "@/components/animate-ui/components/community/share-button"
 import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/tilt"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
@@ -22,20 +21,6 @@ import {
   ChartLineFeatureIcon,
   LayersFeatureIcon,
 } from "@/components/ui/payment-feature-icons"
-
-const CAROUSEL_ITEMS = [
-  { src: "/c1.jpg", alt: "StepPay showcase image 1" },
-  { src: "/c2.jpg", alt: "StepPay showcase image 2" },
-  { src: "/c3.jpg", alt: "StepPay showcase image 3" },
-  { src: "/c4.jpg", alt: "StepPay showcase image 4" },
-  { src: "/c5.jpg", alt: "StepPay showcase image 5" },
-  { src: "/c6.jpg", alt: "StepPay showcase image 6" },
-  { src: "/c7.jpg", alt: "StepPay showcase image 7" },
-  { src: "/c8.jpg", alt: "StepPay showcase image 8" },
-  { src: "/c9.jpg", alt: "StepPay showcase image 9" },
-  { src: "/c10.jpg", alt: "StepPay showcase image 10" },
-  { src: "/c11.jpg", alt: "StepPay showcase image 11" },
-]
 
 export default function Home() {
   return (
@@ -122,14 +107,6 @@ export default function Home() {
             </LiquidButton>
           </Link>
         </div>
-      </section>
-
-      {/* Motion Carousel Section */}
-      <section className="container mx-auto px-4 pb-6 relative z-10">
-        <MotionCarousel
-          items={CAROUSEL_ITEMS}
-          className="mx-auto max-w-6xl [&>div:first-child]:aspect-[16/15] md:[&>div:first-child]:aspect-[21/9]"
-        />
       </section>
 
       {/* 4 Simple Steps Section */}
