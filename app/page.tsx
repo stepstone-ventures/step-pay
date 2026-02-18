@@ -92,7 +92,7 @@ export default function Home() {
         <h1 className="mb-6 tracking-tight flex justify-center">
           <span className="fx-shield">
             <RotatingText
-              texts={["Go Global", "No Borders", "No Limits"]}
+              texts={["Step Smarter", "Step Secure", "Step Ahead"]}
               className="text-5xl md:text-6xl font-bold"
             />
           </span>
@@ -226,7 +226,7 @@ export default function Home() {
           <div className="mx-auto max-w-5xl">
             <RollingText
               text="No matter your industry or size, we will enable you grow your revenue and scale your business"
-              className="block text-3xl md:text-4xl font-bold mb-4 tracking-tight text-center leading-tight text-foreground"
+              className="fx-shield-block block text-3xl md:text-4xl font-bold mb-4 tracking-tight text-center leading-tight text-foreground"
               delay={500}
               transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
               loop
