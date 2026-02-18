@@ -4,58 +4,66 @@
 
 @layer base {
   :root {
-    /* Revolut-inspired Light Mode */
+    /* Animate UI-inspired Black & White Light Mode */
     --background: 0 0% 100%;
-    --foreground: 215 25% 16%;
+    --foreground: 0 0% 0%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 16%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 16%;
-    --primary: 211 100% 47%; /* Revolut Blue #0075EB */
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 20% 98%;
-    --secondary-foreground: 215 25% 16%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 211 100% 47%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 0% 0%;
     --destructive-foreground: 0 0% 100%;
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 211 100% 47%;
-    --radius: 0.75rem;
-    --sidebar-bg: 220 13% 18%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-hover: 220 13% 25%;
-    --sidebar-active: 211 100% 47%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
+    --radius: 0.5rem;
+    --sidebar-bg: 0 0% 98%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-hover: 0 0% 90%;
+    --sidebar-active: 0 0% 0%;
+    --liquid-fill: hsl(var(--foreground));
+    --liquid-bg: hsl(var(--muted));
+    --liquid-text: hsl(var(--foreground));
+    --liquid-text-hover: hsl(var(--background));
   }
 
   .dark {
-    /* Revolut-inspired Dark Mode */
-    --background: 215 28% 8%;
-    --foreground: 0 0% 98%;
-    --card: 215 28% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 215 28% 12%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 211 100% 55%;
-    --primary-foreground: 215 28% 8%;
-    --secondary: 215 28% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 215 28% 16%;
-    --muted-foreground: 215 16% 65%;
-    --accent: 211 100% 55%;
-    --accent-foreground: 215 28% 8%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 215 28% 20%;
-    --input: 215 28% 20%;
-    --ring: 211 100% 55%;
-    --sidebar-bg: 220 13% 12%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-hover: 220 13% 20%;
-    --sidebar-active: 211 100% 55%;
+    /* Animate UI-inspired Black & White Dark Mode */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 0% 100%;
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%;
+    --sidebar-bg: 0 0% 3%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-hover: 0 0% 18%;
+    --sidebar-active: 0 0% 100%;
+    --liquid-fill: hsl(var(--foreground));
+    --liquid-bg: hsl(var(--muted));
+    --liquid-text: hsl(var(--foreground));
+    --liquid-text-hover: hsl(var(--background));
   }
 }
 
@@ -66,6 +74,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   }
 }
 
@@ -89,4 +98,320 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes sheet-overlay-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes sheet-overlay-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheet-in-right {
+    from {
+      opacity: 0;
+      transform: translate3d(100%, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes sheet-out-right {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(100%, 0, 0);
+    }
+  }
+
+  @keyframes sheet-in-left {
+    from {
+      opacity: 0;
+      transform: translate3d(-100%, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes sheet-out-left {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(-100%, 0, 0);
+    }
+  }
+
+  @keyframes sheet-out-left-into-right {
+    0% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    45% {
+      opacity: 1;
+      transform: translate3d(-12%, 0, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(100%, 0, 0);
+    }
+  }
+
+  @keyframes sheet-in-top {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -100%, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes sheet-out-top {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0, -100%, 0);
+    }
+  }
+
+  @keyframes sheet-in-bottom {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 100%, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes sheet-out-bottom {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0, 100%, 0);
+    }
+  }
+
+  @keyframes sheet-genie-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 0, 0) scale3d(0.05, 0.02, 1) skewY(-14deg);
+      filter: blur(2px);
+      border-radius: 999px;
+    }
+    55% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1.04, 0.86, 1) skewY(-4deg);
+      filter: blur(0.5px);
+      border-radius: 24px;
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1) skewY(0deg);
+      filter: blur(0);
+      border-radius: 0;
+    }
+  }
+
+  @keyframes sheet-genie-out {
+    0% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1) skewY(0deg);
+      filter: blur(0);
+      border-radius: 0;
+    }
+    45% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(0.94, 0.42, 1) skewY(-7deg);
+      filter: blur(0.6px);
+      border-radius: 30px;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(0, 0, 0) scale3d(0.05, 0.02, 1) skewY(-14deg);
+      filter: blur(2px);
+      border-radius: 999px;
+    }
+  }
+
+  @keyframes ui-spring-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0) scale3d(0.96, 0.96, 1);
+    }
+    68% {
+      opacity: 1;
+      transform: translate3d(0, -2px, 0) scale3d(1.01, 1.01, 1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+  }
+
+  @keyframes ui-spring-out {
+    0% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale3d(0.97, 0.97, 1);
+    }
+  }
+
+  @keyframes ui-dialog-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ui-dialog-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ui-dialog-spring-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(-50%, -47%, 0) scale3d(0.96, 0.96, 1);
+    }
+    72% {
+      opacity: 1;
+      transform: translate3d(-50%, -50.4%, 0) scale3d(1.01, 1.01, 1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+    }
+  }
+
+  @keyframes ui-dialog-spring-out {
+    0% {
+      opacity: 1;
+      transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(-50%, -47%, 0) scale3d(0.97, 0.97, 1);
+    }
+  }
+
+  .fx-shield {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    display: inline-block;
+  }
+
+  .fx-shield::before {
+    content: "";
+    position: absolute;
+    inset: -0.2em -0.35em;
+    z-index: -1;
+    border: 1px solid transparent;
+    border-radius: 0.9rem;
+    background: hsl(var(--background));
+    pointer-events: none;
+  }
+
+  .fx-shield-block {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    display: block;
+  }
+
+  .fx-shield-block::before {
+    content: "";
+    position: absolute;
+    inset: -0.35rem -0.55rem;
+    z-index: -1;
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    background: hsl(var(--background));
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  .liquid-button {
+    color: var(--liquid-text);
+    --liquid-button-color: var(--liquid-fill);
+    --liquid-button-background-color: var(--liquid-bg);
+    --liquid-button-fill-width: -1%;
+    --liquid-button-fill-height: 3px;
+    --liquid-button-delay: 0s;
+  }
+
+  .liquid-button:is(:hover, [data-liquid-active="true"]) {
+    --liquid-button-fill-width: 100%;
+    --liquid-button-fill-height: 100%;
+    --liquid-button-delay: 0.3s;
+    color: var(--liquid-text-hover);
+  }
+
+  .liquid-button:is([aria-expanded="true"], [data-state="open"]) {
+    --liquid-button-fill-width: -1%;
+    --liquid-button-fill-height: 3px;
+    --liquid-button-delay: 0s;
+    color: var(--liquid-text);
+  }
+}
+
+/* 3D Transform Utilities for Flip Cards */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.dashboard-static-cards [data-slot="card"] {
+  transform: none !important;
+}
+
+.dashboard-static-cards [data-slot="card"]:hover {
+  transform: none !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }

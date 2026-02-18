@@ -6,11 +6,6 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Circle, ArrowRight } from "lucide-react"
-import { createClient } from "@supabase/supabase-js"
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const steps = [
   { id: "profile", name: "Profile", href: "/dashboard/compliance/profile" },
@@ -26,42 +21,21 @@ export default function CompliancePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadComplianceStatus = async () => {
+    const loadComplianceStatus = () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-          router.push("/login")
-          return
-        }
-
-        const { data: merchant, error } = await supabase
-          .from("merchants")
-          .select(`
-            profile_completed,
-            contact_completed,
-            owner_completed,
-            account_completed,
-            service_agreement_completed,
-            completed_at
-          `)
-          .eq("user_id", user.id)
-          .maybeSingle()
-
-        if (error || !merchant) {
-          console.error("Merchant fetch error:", error)
-          return
-        }
-
         const completed = new Set<string>()
+        const storedSteps = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
+        if (Array.isArray(storedSteps)) {
+          storedSteps.forEach((step) => {
+            if (typeof step === "string") {
+              completed.add(step)
+            }
+          })
+        }
 
-        if (merchant.profile_completed) completed.add("profile")
-        if (merchant.contact_completed) completed.add("contact")
-        if (merchant.owner_completed) completed.add("owner")
-        if (merchant.account_completed) completed.add("account")
-        if (merchant.service_agreement_completed) completed.add("service-agreement")
+        if (localStorage.getItem("compliance_complete") === "true") {
+          steps.forEach((step) => completed.add(step.id))
+        }
 
         setCompletedSteps(completed)
       } catch (err) {
@@ -72,7 +46,14 @@ export default function CompliancePage() {
     }
 
     loadComplianceStatus()
-  }, [router])
+
+    window.addEventListener("storage", loadComplianceStatus)
+    window.addEventListener("focus", loadComplianceStatus)
+    return () => {
+      window.removeEventListener("storage", loadComplianceStatus)
+      window.removeEventListener("focus", loadComplianceStatus)
+    }
+  }, [])
 
   const handleStart = () => {
     router.push("/dashboard/compliance/profile")

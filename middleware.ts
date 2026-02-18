@@ -1,13 +1,12 @@
-// middleware.ts
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'  // ← This import was missing
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr"
+import { NextResponse, type NextRequest } from "next/server"
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-
-  const cookieStore = cookies()
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,39 +14,56 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
           })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user: fetchedUser },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-  const pathname = req.nextUrl.pathname
+  let user = fetchedUser
+  if (!user && userError) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    user = session?.user ?? null
+  }
+
+  const { pathname } = request.nextUrl
 
   if (pathname.startsWith("/dashboard")) {
-    if (!session) {
-      return NextResponse.redirect(new URL("/login", req.url))
+    if (!user) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("error", "unauthorized")
+      return NextResponse.redirect(loginUrl)
     }
 
-    if (!session.user.email_confirmed_at) {
-      return NextResponse.redirect(
-        new URL(
-          `/login?error=unconfirmed&email=${encodeURIComponent(session.user.email || '')}`,
-          req.url
-        )
-      )
+    if (!user.email_confirmed_at) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("error", "unconfirmed")
+      if (user.email) {
+        loginUrl.searchParams.set("email", user.email)
+      }
+      return NextResponse.redirect(loginUrl)
     }
   }
 
-  return res
+  return response
 }
 
 export const config = {

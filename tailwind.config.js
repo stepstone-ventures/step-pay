@@ -57,10 +57,13 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", ...defaultTheme.fontFamily.sans],
+        sans: ["var(--font-outfit)", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", '"Helvetica Neue"', "Arial", '"Noto Sans"', "sans-serif", '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"'],
       },
       transitionTimingFunction: {
         'revolut': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      perspective: {
+        '1000': '1000px',
       },
       keyframes: {
         "accordion-down": {
@@ -90,4 +93,3 @@ module.exports = {
   },
   plugins: [],
 };
-

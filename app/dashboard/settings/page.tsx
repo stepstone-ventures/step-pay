@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Highlight } from "@/components/animate-ui/primitives/effects/highlight"
 import {
   User,
   Mail,
@@ -161,25 +162,28 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="border-b">
-        <div className="flex space-x-8">
+        <Highlight
+          value={activeTab}
+          onValueChange={setActiveTab}
+          mode="parent"
+          containerClassName="flex flex-wrap gap-2 pb-4"
+          className="rounded-lg bg-accent inset-0 border border-border/60"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        >
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 pb-4 px-1 border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                data-value={tab.id}
+                className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm transition-colors text-muted-foreground data-[active=true]:text-foreground data-[active=true]:font-medium"
               >
                 <Icon className="h-4 w-4" />
                 <span className="font-medium">{tab.label}</span>
               </button>
             )
           })}
-        </div>
+        </Highlight>
       </div>
 
       {/* Profile Tab */}

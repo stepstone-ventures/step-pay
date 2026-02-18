@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { LiquidButton } from "@/components/ui/liquid-button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { ShoppingCart, Filter, X, Download, MoreVertical } from "lucide-react"
 
 interface Order {
@@ -134,16 +136,6 @@ export default function OrdersPage() {
     URL.revokeObjectURL(url)
   }
 
-  const toggleOrderSelection = (orderId: string) => {
-    const newSelected = new Set(selectedOrders)
-    if (newSelected.has(orderId)) {
-      newSelected.delete(orderId)
-    } else {
-      newSelected.add(orderId)
-    }
-    setSelectedOrders(newSelected)
-  }
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-GH", {
       style: "currency",
@@ -243,9 +235,9 @@ export default function OrdersPage() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <LiquidButton className="h-9 w-9 border border-border/60 p-0">
                     <MoreVertical className="h-4 w-4" />
-                  </Button>
+                  </LiquidButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => {
@@ -279,11 +271,10 @@ export default function OrdersPage() {
                     <TableRow>
                       <TableHead>#</TableHead>
                       <TableHead className="w-12">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selectedOrders.size === filtered.length && filtered.length > 0}
-                          onChange={(e) => {
-                            if (e.target.checked) {
+                          onCheckedChange={(checked) => {
+                            if (checked) {
                               setSelectedOrders(new Set(filtered.map((o) => o.id)))
                             } else {
                               setSelectedOrders(new Set())
@@ -305,10 +296,19 @@ export default function OrdersPage() {
                           {index + 1}
                         </TableCell>
                         <TableCell>
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={selectedOrders.has(order.id)}
-                            onChange={() => toggleOrderSelection(order.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedOrders((prev) => {
+                                const next = new Set(prev)
+                                if (checked) {
+                                  next.add(order.id)
+                                } else {
+                                  next.delete(order.id)
+                                }
+                                return next
+                              })
+                            }}
                           />
                         </TableCell>
                         <TableCell className="font-medium">{order.id}</TableCell>

@@ -39,14 +39,38 @@ interface DashboardStats {
   successRate: number
 }
 
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+type CurrencyOption = {
+  id: string
+  country: string
+  flag: string
+  dialCode: string
+  currencyCode: string
+}
+
+const normalizeCountryName = (countryName: string) => {
+  if (countryName === "United States Minor Outlying Islands" || countryName === "United States") {
+    return "United States of America"
+  }
+  return countryName
+}
+
+const getDialDigitsLength = (dialCode: string) => dialCode.replace(/[^\d]/g, "").length
+
+const FALLBACK_CURRENCY_OPTIONS: CurrencyOption[] = [
+  { id: "Ghana::+233::GHS", country: "Ghana", flag: "🇬🇭", dialCode: "+233", currencyCode: "GHS" },
+  { id: "Kenya::+254::KES", country: "Kenya", flag: "🇰🇪", dialCode: "+254", currencyCode: "KES" },
+  { id: "Nigeria::+234::NGN", country: "Nigeria", flag: "🇳🇬", dialCode: "+234", currencyCode: "NGN" },
+  { id: "South Africa::+27::ZAR", country: "South Africa", flag: "🇿🇦", dialCode: "+27", currencyCode: "ZAR" },
+  { id: "United States of America::+1::USD", country: "United States of America", flag: "🇺🇸", dialCode: "+1", currencyCode: "USD" },
+]
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [paymentVolume, setPaymentVolume] = useState<PaymentVolume[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCurrency, setSelectedCurrency] = useState("GHS")
+  const [currencyOptions, setCurrencyOptions] = useState<CurrencyOption[]>(FALLBACK_CURRENCY_OPTIONS)
+  const [selectedCurrencyId, setSelectedCurrencyId] = useState("Ghana::+233::GHS")
   const [chartType, setChartType] = useState<ChartType>("bar")
 
   // Fetch data from API routes
@@ -65,10 +89,98 @@ export default function DashboardPage() {
       .catch(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    let active = true
+
+    const loadCurrencyOptions = async () => {
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,idd,flag,currencies")
+        if (!response.ok) return
+
+        const countries = await response.json()
+        const byCountry = new Map<string, CurrencyOption>()
+
+        for (const country of countries) {
+          const root = country?.idd?.root
+          const suffixes: string[] = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : []
+          const name = typeof country?.name?.common === "string" ? normalizeCountryName(country.name.common) : ""
+          const flag = typeof country?.flag === "string" ? country.flag : "🏳️"
+          const currencyEntries = country?.currencies && typeof country.currencies === "object"
+            ? Object.keys(country.currencies)
+            : []
+
+          if (!root || !name || suffixes.length === 0 || currencyEntries.length === 0) continue
+
+          const candidateDialCodes = suffixes
+            .map((suffix) => `${root}${suffix}`.replace(/[^\d+]/g, ""))
+            .filter((dialCode) => dialCode.startsWith("+") && getDialDigitsLength(dialCode) > 0 && getDialDigitsLength(dialCode) <= 3)
+            .sort((a, b) => {
+              const lengthDiff = getDialDigitsLength(a) - getDialDigitsLength(b)
+              return lengthDiff !== 0 ? lengthDiff : a.localeCompare(b)
+            })
+
+          if (candidateDialCodes.length === 0) continue
+
+          let dialCode = candidateDialCodes[0] || "+1"
+          if (name === "United States of America") {
+            dialCode = "+1"
+          }
+
+          const currencyCode = currencyEntries.sort((a: string, b: string) => a.localeCompare(b))[0]
+          if (!currencyCode) continue
+
+          const nextOption: CurrencyOption = {
+            id: `${name}::${dialCode}::${currencyCode}`,
+            country: name,
+            flag,
+            dialCode,
+            currencyCode,
+          }
+
+          const existing = byCountry.get(name)
+          if (!existing) {
+            byCountry.set(name, nextOption)
+            continue
+          }
+
+          const existingLen = getDialDigitsLength(existing.dialCode)
+          const nextLen = getDialDigitsLength(dialCode)
+          if (nextLen < existingLen || (nextLen === existingLen && dialCode < existing.dialCode)) {
+            byCountry.set(name, nextOption)
+          }
+        }
+
+        const sorted = Array.from(byCountry.values()).sort((a, b) =>
+          a.country.localeCompare(b.country, undefined, { sensitivity: "base" })
+        )
+
+        if (!active || sorted.length === 0) return
+
+        setCurrencyOptions(sorted)
+        const ghanaOption = sorted.find((option) => option.country === "Ghana")
+        setSelectedCurrencyId((prev) => {
+          if (sorted.some((option) => option.id === prev)) return prev
+          return ghanaOption?.id ?? sorted[0]?.id ?? prev
+        })
+      } catch {
+        // Keep fallback options if network fetch fails.
+      }
+    }
+
+    loadCurrencyOptions()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const selectedCurrencyOption = currencyOptions.find((option) => option.id === selectedCurrencyId)
+  const selectedCurrencyCode = selectedCurrencyOption?.currencyCode ?? "GHS"
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-GH", {
       style: "currency",
-      currency: selectedCurrency,
+      currency: selectedCurrencyCode,
     }).format(amount)
   }
 
@@ -111,14 +223,14 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-              <SelectTrigger className="w-[80px] h-8">
-                <SelectValue />
+            <Select value={selectedCurrencyId} onValueChange={setSelectedCurrencyId}>
+              <SelectTrigger className="w-[110px] h-8">
+                <SelectValue placeholder="Currency">{selectedCurrencyCode}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {currencies.map((curr) => (
-                  <SelectItem key={curr} value={curr}>
-                    {curr}
+                {currencyOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.flag} {option.country} ({option.dialCode}) - {option.currencyCode}
                   </SelectItem>
                 ))}
               </SelectContent>

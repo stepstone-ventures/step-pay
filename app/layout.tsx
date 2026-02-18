@@ -1,9 +1,14 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Outfit } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ScrollProgress } from "@/components/animate-ui/primitives/animate/scroll-progress"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const outfit = Outfit({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-outfit",
+})
 
 export const metadata: Metadata = {
   title: "StepPay Dashboard",
@@ -34,12 +39,12 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={`${outfit.variable} font-sans antialiased bg-background text-foreground`}>
         <ThemeProvider defaultTheme="light" storageKey="step-pay-theme">
+          <ScrollProgress />
           {children}
         </ThemeProvider>
       </body>
     </html>
   )
 }
-

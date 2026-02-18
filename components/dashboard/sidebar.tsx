@@ -1,48 +1,51 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
-  Shield,
-  Home,
-  CreditCard,
-  Users,
-  RotateCcw,
-  Wallet,
   AlertCircle,
-  Split,
   Building2,
-  Tablet,
-  Repeat,
   Calendar,
-  ShoppingBag,
-  Store,
+  Check,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  Home,
   Package,
   Receipt,
-  FileText,
-  Settings,
-  Menu,
+  Repeat,
+  RotateCcw,
+  Shield,
+  ShoppingBag,
+  Split,
+  Store,
+  Tablet,
+  Users,
+  Wallet,
   X,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react"
-import { isComplianceComplete } from "@/lib/compliance-utils"
 import { Button } from "@/components/ui/button"
+import { NotificationList } from "@/components/animate-ui/components/community/notification-list"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { SidebarRouteLoader } from "@/components/dashboard/sidebar-route-loader"
 
-const navigation = [
+const pinnedNavigation = [
   {
     name: "Compliance",
     href: "/dashboard/compliance",
     icon: Shield,
-    color: "text-red-400",
   },
   {
     name: "Home",
     href: "/dashboard",
     icon: Home,
   },
+]
+
+const sectionNavigation = [
   {
     name: "PAYMENTS",
     children: [
@@ -76,213 +79,260 @@ const navigation = [
   },
 ]
 
-export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (open: boolean) => void }) {
+const COMPLIANCE_TOTAL_STEPS = 5
+const COMPLIANCE_STEP_IDS = new Set(["profile", "contact", "owner", "account", "service-agreement"])
+const sectionTransition = { type: "spring", stiffness: 90, damping: 12, mass: 1 } as const
+
+const getComplianceProgress = (): number => {
+  if (typeof window === "undefined") return 0
+
+  if (localStorage.getItem("compliance_complete") === "true") {
+    return COMPLIANCE_TOTAL_STEPS
+  }
+
+  try {
+    const stored = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
+    if (!Array.isArray(stored)) return 0
+    const completed = new Set(stored.filter((step) => COMPLIANCE_STEP_IDS.has(step)))
+    return Math.min(completed.size, COMPLIANCE_TOTAL_STEPS)
+  } catch {
+    return 0
+  }
+}
+
+export function Sidebar({
+  mobileOpen,
+  setMobileOpen,
+}: {
+  mobileOpen?: boolean
+  setMobileOpen?: (open: boolean) => void
+}) {
   const pathname = usePathname()
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["PAYMENTS", "RECURRING", "COMMERCE"]))
-  const [isComplianceDone, setIsComplianceDone] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [complianceProgress, setComplianceProgress] = useState(0)
+  const [isRouteLoading, setIsRouteLoading] = useState(false)
+  const loaderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setIsComplianceDone(isComplianceComplete())
+    const syncProgress = () => setComplianceProgress(getComplianceProgress())
+    syncProgress()
+
+    window.addEventListener("storage", syncProgress)
+    window.addEventListener("focus", syncProgress)
+    return () => {
+      window.removeEventListener("storage", syncProgress)
+      window.removeEventListener("focus", syncProgress)
+    }
+  }, [pathname])
+
+  useEffect(() => {
+    return () => {
+      if (loaderTimeoutRef.current) {
+        clearTimeout(loaderTimeoutRef.current)
+      }
+    }
   }, [])
 
   const toggleSection = (name: string) => {
-    const newExpanded = new Set(expandedSections)
-    if (newExpanded.has(name)) {
-      newExpanded.delete(name)
-    } else {
-      newExpanded.add(name)
+    setExpandedSections((previous) => {
+      const next = new Set(previous)
+      if (next.has(name)) {
+        next.delete(name)
+      } else {
+        next.add(name)
+      }
+      return next
+    })
+  }
+
+  const closeMobileIfNeeded = () => {
+    if (window.innerWidth < 768) {
+      setMobileOpen?.(false)
     }
-    setExpandedSections(newExpanded)
+  }
+
+  const startRouteLoader = () => {
+    if (loaderTimeoutRef.current) {
+      clearTimeout(loaderTimeoutRef.current)
+    }
+    setIsRouteLoading(true)
+    loaderTimeoutRef.current = setTimeout(() => {
+      setIsRouteLoading(false)
+    }, 3000)
+  }
+
+  const navigateFromSidebar = (href: string) => {
+    if (href !== pathname) {
+      startRouteLoader()
+    }
+    closeMobileIfNeeded()
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col overflow-hidden px-4 pb-6 pt-0">
-      {/* Logo Section - Fixed at top, always visible */}
-      <div className="flex items-start justify-center px-2 pt-0 shrink-0 sticky top-0 z-10 bg-sidebar">
-        <div className="flex items-center justify-center w-full relative">
-          <img 
-            src="/steppay-logo.png" 
-            alt="STEPPAY" 
-            className="h-[180px] w-auto object-contain"
-          />
-          {setMobileOpen && (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="h-[81px] shrink-0 border-b border-sidebar-hover/70 px-3">
+        <div className="flex h-full items-center justify-between">
+          <Link href="/dashboard" onClick={() => navigateFromSidebar("/dashboard")} className="flex items-center space-x-1.5">
+            <div className="relative h-10 w-14">
+              <img
+                src="/steppay-logo.png"
+                alt="StepPay logo"
+                className="h-full w-full object-contain dark:invert"
+              />
+            </div>
+            <span className="text-lg font-semibold tracking-tight">StepPay</span>
+          </Link>
+
+          {setMobileOpen ? (
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setMobileOpen(false)}
-              className="md:hidden text-sidebar-foreground hover:bg-sidebar-hover shrink-0 absolute top-0 right-0"
+              className="md:hidden h-10 w-10 text-sidebar-foreground hover:bg-sidebar-hover"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
-      {/* Navigation Section - Scrollable middle section */}
-      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-        <nav className="flex flex-col shrink-0 pt-6 pb-4">
-          <ul role="list" className="flex flex-col gap-y-1">
-            {navigation.map((item) => {
-            if (item.children) {
-              const isExpanded = expandedSections.has(item.name)
-              return (
-                <li key={item.name}>
-                  <button
-                    onClick={() => toggleSection(item.name)}
-                    className="w-full flex items-center gap-x-3 px-3 py-2.5 text-sm font-semibold leading-6 text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground rounded-lg transition-smooth"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 shrink-0" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 shrink-0" />
-                    )}
-                    <span>{item.name}</span>
-                  </button>
-                  {isExpanded && (
-                    <ul role="list" className="mt-1 ml-7 space-y-1">
-                      {item.children.map((child) => {
-                        const isActive = pathname === child.href
-                        const Icon = child.icon
-                        return (
-                          <li key={child.name}>
-                            <Link
-                              href={child.href}
-                              onClick={() => {
-                                // Close sidebar on mobile after navigation
-                                if (window.innerWidth < 768) {
-                                  setMobileOpen?.(false)
-                                }
-                              }}
-                              className={cn(
-                                "flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm leading-6 transition-smooth",
-                                isActive
-                                  ? "bg-primary/20 text-primary font-medium"
-                                  : "text-sidebar-foreground/70 hover:bg-sidebar-hover hover:text-sidebar-foreground"
-                              )}
-                            >
-                              <Icon className="h-4 w-4 shrink-0" />
-                              {child.name}
-                            </Link>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </li>
-              )
-            }
 
-            // For Home, use exact match. For Compliance, match compliance routes
-            const isActive = item.name === "Home" 
-              ? pathname === item.href
-              : item.name === "Compliance"
-              ? pathname === item.href || pathname.startsWith("/dashboard/compliance")
-              : pathname === item.href || (item.href && pathname.startsWith(item.href + "/"))
-            const Icon = item.icon || Shield
-            const complianceColor = item.name === "Compliance" && isComplianceDone ? "text-green-300" : item.color || ""
+      <div className="shrink-0 border-b border-sidebar-hover/70 px-3 py-3">
+        <ul className="space-y-1.5">
+          {pinnedNavigation.map((item) => {
+            const isActive =
+              item.name === "Home"
+                ? pathname === item.href
+                : pathname === item.href || pathname.startsWith("/dashboard/compliance")
+            const Icon = item.icon
+            const isComplianceComplete = complianceProgress === COMPLIANCE_TOTAL_STEPS
 
             return (
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  onClick={() => {
-                    // Close sidebar on mobile after navigation
-                    if (window.innerWidth < 768) {
-                      setMobileOpen?.(false)
-                    }
-                  }}
+                  onClick={() => navigateFromSidebar(item.href)}
                   className={cn(
-                    "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
+                    "flex items-center justify-between gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
                     isActive
                       ? "bg-primary/20 text-primary"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground",
-                    complianceColor && !isActive ? complianceColor : ""
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-hover/95 hover:text-sidebar-foreground"
                   )}
                 >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {item.name}
+                  <span className="flex items-center gap-x-3">
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {item.name}
+                  </span>
+                  {item.name === "Compliance" ? (
+                    isComplianceComplete ? (
+                      <Check className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <span className="text-xs font-semibold text-sidebar-foreground/65">
+                        {complianceProgress}/{COMPLIANCE_TOTAL_STEPS}
+                      </span>
+                    )
+                  ) : null}
                 </Link>
               </li>
             )
           })}
-          </ul>
-        </nav>
+        </ul>
       </div>
-      
-      {/* Bottom section for Audit Logs and Settings - Fixed at bottom, always visible */}
-      <div className="shrink-0 sticky bottom-0 pt-4 border-t border-sidebar-border bg-sidebar">
-        <ul role="list" className="space-y-1">
-            <li>
-              <Link
-                href="/dashboard/audit-logs"
-                onClick={() => {
-                  // Close sidebar on mobile after navigation
-                  if (window.innerWidth < 768) {
-                    setMobileOpen?.(false)
-                  }
-                }}
-                className={cn(
-                  "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
-                  pathname === "/dashboard/audit-logs" || pathname.startsWith("/dashboard/audit-logs/")
-                    ? "bg-primary/20 text-primary"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground"
-                )}
-              >
-                <FileText className="h-5 w-5 shrink-0" />
-                Audit Logs
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/settings"
-                onClick={() => {
-                  // Close sidebar on mobile after navigation
-                  if (window.innerWidth < 768) {
-                    setMobileOpen?.(false)
-                  }
-                }}
-                className={cn(
-                  "flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
-                  pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
-                    ? "bg-primary/20 text-primary"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground"
-                )}
-              >
-                <Settings className="h-5 w-5 shrink-0" />
-                Settings
-              </Link>
-            </li>
+
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0 overflow-y-auto px-3 py-3" style={{ paddingBottom: "max(36%, 232px)" }}>
+          <ul role="list" className="flex flex-col gap-y-1.5">
+            {sectionNavigation.map((item) => {
+              const isExpanded = expandedSections.has(item.name)
+
+              return (
+                <li key={item.name} className="rounded-lg bg-sidebar-hover/30">
+                  <button
+                    onClick={() => toggleSection(item.name)}
+                    className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2.5 text-left text-xs font-semibold tracking-wide text-sidebar-foreground/75 transition-smooth hover:bg-sidebar-hover/95 hover:text-sidebar-foreground"
+                  >
+                    <motion.span
+                      animate={{ rotate: isExpanded ? 90 : 0 }}
+                      transition={sectionTransition}
+                      className="inline-flex h-4 w-4 shrink-0 items-center justify-center"
+                    >
+                      <ChevronRight className="h-4 w-4 shrink-0" />
+                    </motion.span>
+                    <span>{item.name}</span>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isExpanded ? (
+                      <motion.ul
+                        role="list"
+                        initial={{ height: 0, opacity: 0, y: -8 }}
+                        animate={{ height: "auto", opacity: 1, y: 0 }}
+                        exit={{ height: 0, opacity: 0, y: -8 }}
+                        transition={sectionTransition}
+                        className="space-y-1 overflow-hidden px-2 pb-2"
+                      >
+                        {item.children.map((child) => {
+                          const isActive = pathname === child.href
+                          const Icon = child.icon
+                          return (
+                            <li key={child.name}>
+                              <Link
+                                href={child.href}
+                                onClick={() => navigateFromSidebar(child.href)}
+                                className={cn(
+                                  "flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm leading-6 transition-smooth",
+                                  isActive
+                                    ? "bg-primary/20 text-primary font-medium"
+                                    : "text-sidebar-foreground/70 hover:bg-sidebar-hover/95 hover:text-sidebar-foreground"
+                                )}
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {child.name}
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </motion.ul>
+                    ) : null}
+                  </AnimatePresence>
+                </li>
+              )
+            })}
           </ul>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[30%] min-h-[220px] border-t border-sidebar-hover/80 bg-sidebar/97 backdrop-blur-md">
+          <div className="pointer-events-auto flex h-full min-h-0 flex-col px-3 pt-3 pb-3">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <NotificationList onNavigate={startRouteLoader} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
 
   return (
     <>
-      {/* Mobile sidebar backdrop */}
-      {mobileOpen && setMobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {setMobileOpen ? (
+        <Sheet open={Boolean(mobileOpen)} onOpenChange={setMobileOpen}>
+          <SheetContent
+            side="left"
+            showCloseButton={false}
+            className="w-64 p-0 md:hidden data-[state=open]:animate-[sheet-in-left_1800ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[sheet-out-left_1800ms_cubic-bezier(0.22,1,0.36,1)]"
+          >
+            {sidebarContent}
+          </SheetContent>
+        </Sheet>
+      ) : null}
 
-      {/* Desktop & Tablet Sidebar */}
       <div className="hidden md:fixed md:inset-y-0 md:z-30 md:flex md:w-64 md:flex-col">
-        <div className="flex grow flex-col bg-sidebar shadow-xl overflow-hidden">
+        <div className="flex grow flex-col overflow-hidden border-r border-sidebar-hover/70 bg-sidebar shadow-xl">
           {sidebarContent}
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 flex-col bg-sidebar shadow-xl transform transition-transform duration-300 ease-out md:hidden overflow-hidden",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {sidebarContent}
-      </div>
+      <SidebarRouteLoader visible={isRouteLoading} />
     </>
   )
 }

@@ -1,470 +1,348 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { ChevronDown } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, CreditCard, Shield, Zap, Globe, Sun, Moon, Smartphone, Monitor, FileText, Code, Users, Building2, CheckCircle2, Clock, BarChart3, DollarSign, Headphones, ArrowRightLeft, Wallet, QrCode, Receipt, Store, TrendingUp, Star } from "lucide-react"
-import { useTheme } from "@/components/theme-provider"
+import { AnimatedCard } from "@/components/ui/animated-card"
+import { LiquidButton } from "@/components/ui/liquid-button"
+import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { HoleBackground } from "@/components/ui/hole-background"
+import { GravityStarsBackground } from "@/components/ui/gravity-stars-background"
+import { RollingText } from "@/components/animate-ui/primitives/texts/rolling"
+import { RotatingText } from "@/components/animate-ui/primitives/texts/rotating"
+import { MotionCarousel } from "@/components/animate-ui/components/community/motion-carousel"
+import { ShareButton } from "@/components/animate-ui/components/community/share-button"
+import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/tilt"
+import { MobileTopMenu } from "@/components/site/mobile-top-menu"
+import {
+  NfcFeatureIcon,
+  PhoneCallFeatureIcon,
+  ChartLineFeatureIcon,
+  LayersFeatureIcon,
+} from "@/components/ui/payment-feature-icons"
+
+const CAROUSEL_ITEMS = [
+  { src: "/c1.jpg", alt: "StepPay showcase image 1" },
+  { src: "/c2.jpg", alt: "StepPay showcase image 2" },
+  { src: "/c3.jpg", alt: "StepPay showcase image 3" },
+  { src: "/c4.jpg", alt: "StepPay showcase image 4" },
+  { src: "/c5.jpg", alt: "StepPay showcase image 5" },
+  { src: "/c6.jpg", alt: "StepPay showcase image 6" },
+  { src: "/c7.jpg", alt: "StepPay showcase image 7" },
+  { src: "/c8.jpg", alt: "StepPay showcase image 8" },
+  { src: "/c9.jpg", alt: "StepPay showcase image 9" },
+  { src: "/c10.jpg", alt: "StepPay showcase image 10" },
+  { src: "/c11.jpg", alt: "StepPay showcase image 11" },
+]
 
 export default function Home() {
-  const { theme, setTheme } = useTheme()
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <GravityStarsBackground
+        className="z-0 text-foreground pointer-events-none"
+        starsSize={8.75}
+        movementSpeed={0.000193}
+        gravityStrength={3}
+        mouseInfluence={35}
+        glowIntensity={18}
+        starsOpacity={0.1}
+      />
       {/* Header */}
       <header className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
+          <Link href="/" className="flex items-center space-x-1.5">
+            <div className="relative h-10 w-14">
+              <Image
+                src="/steppay-logo.png"
+                alt="StepPay logo"
+                fill
+                sizes="64px"
+                className="object-contain dark:invert"
+                priority
+              />
             </div>
-            <span className="font-semibold text-xl tracking-tight">StepPay</span>
+            <span className="font-semibold text-lg sm:text-xl tracking-tight">StepPay</span>
+          </Link>
+          <div className="hidden sm:flex items-center space-x-4">
+            <ThemeTogglerButton
+              variant="secondary"
+              size="default"
+              className="border border-border/60"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <LiquidButton className="px-4 py-2 text-sm font-semibold border border-border/60">
+                  Receive Payments
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </LiquidButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="w-72 z-[120]">
+                <DropdownMenuItem asChild>
+                  <Link href="/login" className="w-full cursor-pointer">
+                    Request Money from Anyone Anywhere
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/login" className="w-full cursor-pointer">
+                    Charge Clients In-Shop
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/login" className="w-full cursor-pointer">
+                    Integrate Online Checkout
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <ShareButton />
           </div>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
+          <MobileTopMenu className="sm:hidden" />
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-24 text-center">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
-          Accept Payments from Abroad and at Home
+      <section className="container mx-auto px-4 py-24 text-center relative z-10">
+        <h1 className="mb-6 tracking-tight flex justify-center">
+          <span className="fx-shield">
+            <RotatingText
+              texts={["Go Global", "No Borders", "No Limits"]}
+              className="text-5xl md:text-6xl font-bold"
+            />
+          </span>
         </h1>
-        <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-          StepPay helps Ghanaian merchants receive payments from customers around the world and locally with ease and security.
+        <p className="fx-shield-block text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+          Start taking payments from around the world with stepPay. We enables businesses in Africa to receive payments securely from clients anywhere in the world with and with ease across all borders.
         </p>
         <div className="flex justify-center">
           <Link href="/signup">
-            <Button size="lg">
+            <LiquidButton className="px-6 py-3 text-lg font-semibold border border-border/60 dark:border-border">
               Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            </LiquidButton>
           </Link>
         </div>
       </section>
 
-      {/* Payment Methods Section */}
-      <section className="container mx-auto px-4 py-20">
+      {/* Motion Carousel Section */}
+      <section className="container mx-auto px-4 pb-6 relative z-10">
+        <MotionCarousel
+          items={CAROUSEL_ITEMS}
+          className="mx-auto max-w-6xl [&>div:first-child]:aspect-[16/15] md:[&>div:first-child]:aspect-[21/9]"
+        />
+      </section>
+
+      {/* 4 Simple Steps Section */}
+      <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-            No matter your size or industry, we can help grow your revenues
+            <span className="fx-shield">4 Simple Steps</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Accept payments through multiple channels, whether your customers are across the globe or right next door.
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <Tilt className="w-full" maxTilt={9} perspective={900}>
+            <TiltContent>
+              <AnimatedCard delay={0.1} className="hover:shadow-lg transition-all border-border/50">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-2xl font-bold text-primary">1</span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Verify Business</h3>
+                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
+                    Submit basic business details and documents. Get approved in minutes and unlock full access.
+                  </p>
+                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
+                    <Image
+                      src="/f1.jpg"
+                      alt="StepPay verification"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
+                </CardContent>
+              </AnimatedCard>
+            </TiltContent>
+          </Tilt>
+          <Tilt className="w-full" maxTilt={9} perspective={900}>
+            <TiltContent>
+              <AnimatedCard delay={0.2} className="hover:shadow-lg transition-all border-border/50">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-2xl font-bold text-primary">2</span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Set-up Financial Account</h3>
+                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
+                    Securely link your bank account to receive payouts quickly and automatically.
+                  </p>
+                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
+                    <Image
+                      src="/f2.jpg"
+                      alt="StepPay financial setup"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
+                </CardContent>
+              </AnimatedCard>
+            </TiltContent>
+          </Tilt>
+          <Tilt className="w-full" maxTilt={9} perspective={900}>
+            <TiltContent>
+              <AnimatedCard delay={0.3} className="hover:shadow-lg transition-all border-border/50">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-2xl font-bold text-primary">3</span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Create Shop-Front</h3>
+                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
+                    Build your branded payment page or online store in just a few clicks with 0 coding required.
+                  </p>
+                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
+                    <Image
+                      src="/f3.jpg"
+                      alt="StepPay shop front"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
+                </CardContent>
+              </AnimatedCard>
+            </TiltContent>
+          </Tilt>
+          <Tilt className="w-full" maxTilt={9} perspective={900}>
+            <TiltContent>
+              <AnimatedCard delay={0.4} className="hover:shadow-lg transition-all border-border/50">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-2xl font-bold text-primary">4</span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Receive and Track Payments</h3>
+                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
+                    Start accepting payments instantly and monitor every transaction in one clear dashboard.
+                  </p>
+                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
+                    <Image
+                      src="/f4.jpg"
+                      alt="StepPay payments dashboard"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
+                </CardContent>
+              </AnimatedCard>
+            </TiltContent>
+          </Tilt>
+        </div>
+      </section>
+
+      {/* Payment Methods Section */}
+      <section className="container mx-auto px-4 py-20 relative z-10">
+        <div className="text-center mb-12">
+          <div className="mx-auto max-w-5xl">
+            <RollingText
+              text="No matter your industry or size, we will enable you grow your revenue and scale your business"
+              className="block text-3xl md:text-4xl font-bold mb-4 tracking-tight text-center leading-tight text-foreground"
+              delay={500}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+              loop
+              loopDelay={10}
+              inView
+              inViewOnce={false}
+            />
+          </div>
+          <p className="fx-shield-block text-lg text-muted-foreground max-w-2xl mx-auto">
+            Accept payments through multiple channels, utilize real-time analytics to manage the financial health of your business, and make data-driven smart inventory and scheduling to optimize your operations.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <AnimatedCard delay={0.1} className="hover:shadow-lg transition-all border-border/50 group">
             <CardContent className="pt-6">
               <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <Smartphone className="h-7 w-7 text-primary" />
+                <NfcFeatureIcon size={28} className="text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 tracking-tight">Online Payments</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Take payments directly from your website or our shop-front via card, mobile money and digital banking methods.
+              </p>
+            </CardContent>
+          </AnimatedCard>
+          <AnimatedCard delay={0.2} className="hover:shadow-lg transition-all border-border/50 group">
+            <CardContent className="pt-6">
+              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <PhoneCallFeatureIcon size={28} className="text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Mobile Money</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Accept payments across all networks via mobile money. Quick, easy, and works everywhere in Ghana.
+              <p className="text-muted-foreground leading-relaxed">
+                Receive and make transactions across all networks via mobile money in West Africa.
               </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
             </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
+          </AnimatedCard>
+          <AnimatedCard delay={0.3} className="hover:shadow-lg transition-all border-border/50 group">
             <CardContent className="pt-6">
               <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <Monitor className="h-7 w-7 text-primary" />
+                <ChartLineFeatureIcon size={28} className="text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Online Checkout</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Take payments directly on your website via mobile money, card, and international payment methods.
+              <h3 className="text-xl font-semibold mb-2 tracking-tight">Enterprise Resource Planning</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Unify finance, operations, inventory, taxes and reporting into one intelligent platform powering scalable, secure, real time payment ecosystems.
               </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
             </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
+          </AnimatedCard>
+          <AnimatedCard delay={0.4} className="hover:shadow-lg transition-all border-border/50 group">
             <CardContent className="pt-6">
               <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <FileText className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Invoicing</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Generate and send customized invoices for customers to make payments via card or mobile money.
-              </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <Code className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Payment API</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Integrate APIs to send and receive payments from customers anywhere in the world.
-              </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <Users className="h-7 w-7 text-primary" />
+                <LayersFeatureIcon size={28} className="text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Bulk Payments</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed">
                 Send money to multiple mobile wallets or bank accounts at once, locally or internationally.
               </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
             </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-all border-border/50 group">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <QrCode className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">QR Code Payments</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Accept in-store payments via QR codes. Never miss a sale, whether by card or mobile money.
-              </p>
-              <Link href="/signup" className="text-primary hover:underline text-sm font-medium inline-flex items-center">
-                Learn more <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Business Dashboard Section */}
-      <section className="bg-muted/50 py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-                Take control of your business
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                Become a merchant on StepPay and use the StepPay Merchant Dashboard at no extra cost.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Get insights into your business</h4>
-                    <p className="text-sm text-muted-foreground">Real-time analytics and reporting</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Handle bulk payments</h4>
-                    <p className="text-sm text-muted-foreground">Process multiple transactions at once</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Confirm transactions and track sales</h4>
-                    <p className="text-sm text-muted-foreground">Monitor all your payments in real-time</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Manage multiple branches</h4>
-                    <p className="text-sm text-muted-foreground">Centralized control for all locations</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Create customized invoices</h4>
-                    <p className="text-sm text-muted-foreground">Professional invoices for your customers</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold mb-1">Access customer analytics</h4>
-                    <p className="text-sm text-muted-foreground">Understand your customer behavior</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Link href="/signup">
-                  <Button size="lg">
-                    Become a merchant
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-6">
-                <BarChart3 className="h-8 w-8 text-primary mb-3" />
-                <h4 className="font-semibold mb-1">Analytics</h4>
-                <p className="text-sm text-muted-foreground">Track performance</p>
-              </Card>
-              <Card className="p-6">
-                <Receipt className="h-8 w-8 text-primary mb-3" />
-                <h4 className="font-semibold mb-1">Invoices</h4>
-                <p className="text-sm text-muted-foreground">Create & send</p>
-              </Card>
-              <Card className="p-6">
-                <Store className="h-8 w-8 text-primary mb-3" />
-                <h4 className="font-semibold mb-1">Branches</h4>
-                <p className="text-sm text-muted-foreground">Manage locations</p>
-              </Card>
-              <Card className="p-6">
-                <TrendingUp className="h-8 w-8 text-primary mb-3" />
-                <h4 className="font-semibold mb-1">Growth</h4>
-                <p className="text-sm text-muted-foreground">Scale your business</p>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose StepPay Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-            Why choose StepPay
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <CreditCard className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Accept all payment types</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Receive money via mobile money, card payments, QR codes, and international payment methods.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Clock className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Fast settlements</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Don't wait for days before you get settled. Get your money into your account quickly.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <BarChart3 className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Transaction monitoring</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Access your dashboard to get real-time visibility into your business and monitor transactions as they occur.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <DollarSign className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">No setup fees</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Getting started is free. No hidden charges. Pay only a small percentage per transaction as processing fee.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Headphones className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">24/7 Support</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Need help? Text, email or call our support team anytime for assistance.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <ArrowRightLeft className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Transfer funds at no cost</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Pay no charges when transferring funds from your StepPay account to your bank account or mobile money wallet.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="bg-muted/50 py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-            Simple & Transparent Pricing
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Pay only a small percentage per transaction and enjoy fast, secure, and reliable payments.
-          </p>
-          <Card className="max-w-2xl mx-auto border-2 border-primary/20">
-            <CardContent className="pt-8 pb-8">
-              <div className="flex items-center justify-center mb-4">
-                <Wallet className="h-12 w-12 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Get started for free</h3>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <span className="text-muted-foreground">No setup fees</span>
-                </div>
-                <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <span className="text-muted-foreground">No hidden charges</span>
-                </div>
-                <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <span className="text-muted-foreground">Competitive transaction fees</span>
-                </div>
-              </div>
-              <Link href="/signup">
-                <Button size="lg" variant="secondary">
-                  Get started for free
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-            See what businesses say about StepPay
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4 italic leading-relaxed">
-                "StepPay has always made us feel valued. Even if another company processed payments faster, we'd still choose StepPay for the genuine care they show their customers."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Golden Crystal</p>
-                  <p className="text-xs text-muted-foreground">Retail Business</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4 italic leading-relaxed">
-                "StepPay's payment system gave our patients payment flexibility. We were also able to receive payments quickly. It really did make everyone happy."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Sazian Clinic</p>
-                  <p className="text-xs text-muted-foreground">Healthcare</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow border-border/50">
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4 italic leading-relaxed">
-                "I would say StepPay is a digital partner for businesses like us because the platform not only aggregates payments but also provides a dashboard that allows you to have visibility into who is buying from you."
-              </p>
-              <div className="flex items-center space-x-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Nova Ghana</p>
-                  <p className="text-xs text-muted-foreground">E-commerce</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0 shadow-xl">
-          <CardContent className="pt-16 pb-16">
-            <div className="h-20 w-20 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-6">
-              <Globe className="h-10 w-10" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Ready to Get Started?</h2>
-            <p className="text-lg mb-10 opacity-95 max-w-xl mx-auto">
-              Join thousands of Ghanaian merchants already using StepPay
-            </p>
-            <Link href="/signup">
-              <Button size="lg" variant="secondary">
-                Create Your Account
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <section className="container mx-auto px-4 py-20 text-center relative z-10">
+        <div className="relative">
+          <Card className="relative overflow-hidden bg-background/35 backdrop-blur-md text-foreground border border-border/60 shadow-xl z-10">
+            <HoleBackground
+              className="absolute inset-0 z-0 rounded-3xl [&>canvas]:opacity-45 dark:[&>canvas]:opacity-55"
+              strokeColor="hsl(var(--foreground))"
+              particleRGBColor={[255, 255, 255]}
+              numberOfDiscs={50}
+              numberOfLines={40}
+            />
+            <div className="absolute inset-0 z-[1] bg-background/35 dark:bg-background/30" />
+            <CardContent className="relative z-10 h-[24rem] sm:h-[36rem] pt-12 pb-12">
+              <div className="h-full flex flex-col items-center justify-between">
+                <div className="space-y-6 max-w-xl mx-auto">
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Ready to Become Part of the StepPay Family?</h2>
+                  <p className="text-lg opacity-95 max-w-xl mx-auto">
+                    Join thousands of businesses already using StepPay
+                  </p>
+                </div>
+                <div className="flex justify-center">
+                  <Link href="/signup">
+                    <LiquidButton className="px-6 py-3 text-lg font-semibold border border-border/60">
+                      Trust Us With Your Business
+                    </LiquidButton>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8">
+      <footer className="border-t py-8 relative z-20 bg-background">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 StepPay. All rights reserved.</p>
+          <p>&copy; 2026 StepPay Incorporated. All rights reserved.</p>
         </div>
       </footer>
     </div>
