@@ -65,7 +65,12 @@ function MenuRow({
   )
 }
 
-export function MobileTopMenu({ className }: { className?: string }) {
+type MobileTopMenuProps = {
+  className?: string
+  contactSalesAsMenuRow?: boolean
+}
+
+export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: MobileTopMenuProps) {
   const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const [paymentsOpen, setPaymentsOpen] = useState(false)
@@ -168,19 +173,22 @@ export function MobileTopMenu({ className }: { className?: string }) {
               ) : null}
             </AnimatePresence>
 
-            <Link
-              href="#"
-              className="flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/80 px-4 py-3 text-sm font-medium transition-colors hover:bg-background"
-            >
-              <span>Learn</span>
-            </Link>
-
-            <Link
-              href="#"
-              className="flex w-full items-center justify-between rounded-lg border border-border/60 bg-background/80 px-4 py-3 text-sm font-medium transition-colors hover:bg-background"
-            >
-              <span>Company</span>
-            </Link>
+            {contactSalesAsMenuRow ? (
+              <MenuRow
+                onClick={() => {
+                  closeSheet()
+                  window.location.assign("mailto:support@steppay.com?subject=StepPay%20Contact%20Sales")
+                }}
+              >
+                <span>Contact Sales</span>
+              </MenuRow>
+            ) : (
+              <a href="mailto:support@steppay.com?subject=StepPay%20Contact%20Sales" onClick={closeSheet} className="block">
+                <LiquidButton className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
+                  Contact Sales
+                </LiquidButton>
+              </a>
+            )}
 
             <MenuRow onClick={() => setReferOpen((prev) => !prev)}>
               <span>Refer A Friend</span>

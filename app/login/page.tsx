@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BorderBeam } from "@/components/ui/border-beam"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -11,7 +12,7 @@ import { LiquidButton } from "@/components/ui/liquid-button"
 import { IconButton } from "@/components/ui/icon-button"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { FireworksBackground } from "@/components/ui/fireworks-background"
+import { FluidCursor } from "@/components/ui/fluid-cursor"
 import { AnimateTabs, AnimateTabsContent, AnimateTabsList, AnimateTabsTrigger } from "@/components/animate-ui/components/animate/tabs"
 import { ShareButton } from "@/components/animate-ui/components/community/share-button"
 import { UserPresenceAvatar } from "@/components/animate-ui/components/community/user-presence-avatar"
@@ -285,13 +286,7 @@ function LoginPageContent() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
-      <FireworksBackground
-        className="fixed inset-0 z-0 opacity-10 pointer-events-none"
-        population={1.8}
-        fireworkSize={{ min: 3, max: 6 }}
-        particleSize={{ min: 2, max: 5 }}
-        canvasProps={{ className: "absolute inset-0 size-full" }}
-      />
+      <FluidCursor className="z-0" />
       <header className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-1.5">
@@ -334,6 +329,11 @@ function LoginPageContent() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <a href="mailto:support@steppay.com?subject=StepPay%20Contact%20Sales">
+              <LiquidButton className="px-4 py-2 text-sm font-semibold border border-border/60">
+                Contact Sales
+              </LiquidButton>
+            </a>
             <ShareButton />
           </div>
           <MobileTopMenu className="sm:hidden" />
@@ -362,7 +362,8 @@ function LoginPageContent() {
             <UserPresenceAvatar className="mt-4 mx-auto" />
           </div>
 
-          <Card className="border-border/50 shadow-lg">
+          <Card className="relative overflow-hidden border-border/50 shadow-lg">
+            <BorderBeam duration={15} />
             <CardHeader>
               <CardTitle>Sign In</CardTitle>
               <p className="text-sm text-muted-foreground">{tabDescription}</p>

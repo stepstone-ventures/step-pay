@@ -14,6 +14,7 @@ import { CandlestickChart } from "@/components/dashboard/candlestick-chart"
 import { WaterfallChart } from "@/components/dashboard/waterfall-chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Confetti } from "@/components/ui/confetti"
 import { TrendingUp, DollarSign, Activity, AlertTriangle, TrendingDown } from "lucide-react"
 import type { Transaction, PaymentVolume } from "@/lib/mock-data"
 
@@ -72,6 +73,7 @@ export default function DashboardPage() {
   const [currencyOptions, setCurrencyOptions] = useState<CurrencyOption[]>(FALLBACK_CURRENCY_OPTIONS)
   const [selectedCurrencyId, setSelectedCurrencyId] = useState("Ghana::+233::GHS")
   const [chartType, setChartType] = useState<ChartType>("bar")
+  const [showConfetti, setShowConfetti] = useState(true)
 
   // Fetch data from API routes
   useEffect(() => {
@@ -88,6 +90,17 @@ export default function DashboardPage() {
       })
       .catch(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!showConfetti) return
+
+    const dismissConfetti = () => setShowConfetti(false)
+    window.addEventListener("pointerdown", dismissConfetti, { once: true })
+
+    return () => {
+      window.removeEventListener("pointerdown", dismissConfetti)
+    }
+  }, [showConfetti])
 
   useEffect(() => {
     let active = true
@@ -217,6 +230,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pt-6">
+      <Confetti active={showConfetti} />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -69,7 +69,7 @@ export function ShareButton({ className, onIconClick, ...props }: ShareButtonPro
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
         className="relative min-w-28 h-10 px-4 py-2 text-sm font-medium border border-border/60"
-        aria-expanded={expanded}
+        aria-pressed={expanded}
         aria-label="Refer StepPay"
       >
         <AnimatePresence initial={false} mode="wait">

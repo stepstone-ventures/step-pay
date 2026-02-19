@@ -392,6 +392,16 @@
     --liquid-button-delay: 0s;
     color: var(--liquid-text);
   }
+
+  .animate-border-beam::after {
+    animation: border-beam-anim var(--duration) infinite linear;
+  }
+
+  @keyframes border-beam-anim {
+    to {
+      offset-distance: 100%;
+    }
+  }
 }
 
 /* 3D Transform Utilities for Flip Cards */
