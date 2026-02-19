@@ -152,7 +152,7 @@ export default function Home() {
             </span>
           </div>
           <div className="flex h-[420px] md:h-[520px]">
-            <Spline scene={SPLINE_SCENE_URL} className="mt-28 sm:mt-24 size-full" />
+            <Spline scene={SPLINE_SCENE_URL} className="mt-32 sm:mt-24 size-full" />
           </div>
         </div>
         <div className="flex justify-center">

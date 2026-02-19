@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import type { EmailOtpType } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
+import { getSupabasePublicEnv } from "@/lib/supabase/env"
 
 const OTP_TYPES = new Set<EmailOtpType>([
   "signup",
@@ -25,9 +26,10 @@ function normalizeNextPath(nextPath: string | null) {
 
 function createSupabaseRouteClient() {
   const cookieStore = cookies()
+  const { url, anonKey } = getSupabasePublicEnv()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {

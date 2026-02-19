@@ -336,7 +336,7 @@ function LoginPageContent() {
             </a>
             <ShareButton />
           </div>
-          <MobileTopMenu className="sm:hidden" />
+          <MobileTopMenu className="sm:hidden" contactSalesAsMenuRow />
         </div>
       </header>
 
