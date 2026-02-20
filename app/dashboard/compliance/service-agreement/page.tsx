@@ -133,6 +133,7 @@ export default function ServiceAgreementPage() {
       localStorage.setItem("compliance_complete", "true")
       // Trigger custom event for sidebar update (same-tab)
       window.dispatchEvent(new Event("complianceStatusChanged"))
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       // Trigger storage event for cross-tab sync
       window.dispatchEvent(new Event("storage"))
       
@@ -459,4 +460,3 @@ Date: ${new Date().toLocaleDateString()}
     </ComplianceAccessGuard>
   )
 }
-

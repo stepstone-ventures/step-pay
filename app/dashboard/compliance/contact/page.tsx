@@ -168,6 +168,7 @@ export default function ContactPage() {
         steps.push("contact")
         localStorage.setItem("compliance_steps", JSON.stringify(steps))
       }
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       setViewMode("review")
     }
   }
@@ -585,4 +586,3 @@ export default function ContactPage() {
     </ComplianceAccessGuard>
   )
 }
-

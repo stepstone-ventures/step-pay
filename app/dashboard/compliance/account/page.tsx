@@ -119,6 +119,7 @@ export default function AccountPage() {
         steps.push("account")
         localStorage.setItem("compliance_steps", JSON.stringify(steps))
       }
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       setViewMode("review")
     }
   }
@@ -365,4 +366,3 @@ export default function AccountPage() {
     </ComplianceAccessGuard>
   )
 }
-

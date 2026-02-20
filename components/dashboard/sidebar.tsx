@@ -7,28 +7,27 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
   AlertCircle,
-  Building2,
   Calendar,
   Check,
   ChevronRight,
   CreditCard,
   FileText,
-  Home,
   Package,
   Receipt,
   Repeat,
   RotateCcw,
-  Shield,
+  SendHorizontal,
   ShoppingBag,
-  Split,
   Store,
-  Tablet,
   Users,
   Wallet,
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NotificationList } from "@/components/animate-ui/components/community/notification-list"
+import { ListIcon } from "@/components/animate-ui/icons/list"
+import { ChartSplineIcon } from "@/components/animate-ui/icons/chart-spline"
+import { CogIcon } from "@/components/animate-ui/icons/cog"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { SidebarRouteLoader } from "@/components/dashboard/sidebar-route-loader"
 
@@ -36,12 +35,17 @@ const pinnedNavigation = [
   {
     name: "Compliance",
     href: "/dashboard/compliance",
-    icon: Shield,
+    icon: ListIcon,
   },
   {
-    name: "Home",
+    name: "Dashboard",
     href: "/dashboard",
-    icon: Home,
+    icon: ChartSplineIcon,
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: CogIcon,
   },
 ]
 
@@ -51,12 +55,10 @@ const sectionNavigation = [
     children: [
       { name: "Transactions", href: "/dashboard/transactions", icon: CreditCard },
       { name: "Customers", href: "/dashboard/customers", icon: Users },
-      { name: "Refunds", href: "/dashboard/refunds", icon: RotateCcw },
-      { name: "Payouts", href: "/dashboard/payouts", icon: Wallet },
+      { name: "Send Payment", href: "/dashboard/send-payment", icon: SendHorizontal },
+      { name: "Pending", href: "/dashboard/payouts", icon: Wallet },
       { name: "Disputes", href: "/dashboard/disputes", icon: AlertCircle },
-      { name: "Transaction Splits", href: "/dashboard/transaction-splits", icon: Split },
-      { name: "Subaccounts", href: "/dashboard/subaccounts", icon: Building2 },
-      { name: "Terminals", href: "/dashboard/terminals", icon: Tablet },
+      { name: "Refunds", href: "/dashboard/refunds", icon: RotateCcw },
     ],
   },
   {
@@ -200,10 +202,13 @@ export function Sidebar({
       <div className="shrink-0 border-b border-sidebar-hover/70 px-3 py-3">
         <ul className="space-y-1.5">
           {pinnedNavigation.map((item) => {
-            const isActive =
-              item.name === "Home"
+            const isComplianceRoute = item.href === "/dashboard/compliance"
+            const isDashboardRoute = item.href === "/dashboard"
+            const isActive = isComplianceRoute
+              ? pathname === item.href || pathname.startsWith("/dashboard/compliance")
+              : isDashboardRoute
                 ? pathname === item.href
-                : pathname === item.href || pathname.startsWith("/dashboard/compliance")
+                : pathname === item.href
             const Icon = item.icon
             const isComplianceComplete = complianceProgress === COMPLIANCE_TOTAL_STEPS
 
@@ -220,7 +225,7 @@ export function Sidebar({
                   )}
                 >
                   <span className="flex items-center gap-x-3">
-                    <Icon className="h-5 w-5 shrink-0" />
+                    <Icon className="h-5 w-5 shrink-0" animate="default-loop" />
                     {item.name}
                   </span>
                   {item.name === "Compliance" ? (
@@ -304,7 +309,7 @@ export function Sidebar({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[30%] min-h-[220px] border-t border-sidebar-hover/80 bg-sidebar/97 backdrop-blur-md">
           <div className="pointer-events-auto flex h-full min-h-0 flex-col px-3 pt-3 pb-3">
             <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-              <NotificationList onNavigate={startRouteLoader} />
+              <NotificationList />
             </div>
           </div>
         </div>

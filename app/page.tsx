@@ -17,6 +17,7 @@ import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/ti
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { FluidCursor } from "@/components/ui/fluid-cursor"
 import { IPhone15ProMockup } from "@/components/ui/iphone-15-pro-mockup"
+import { CityGlobe } from "@/components/ui/city-globe"
 import {
   NfcFeatureIcon,
   PhoneCallFeatureIcon,
@@ -187,7 +188,7 @@ export default function Home() {
               />
             </span>
             <span className="max-w-2xl font-sans font-light text-black dark:text-white">
-              Step up your business with our secure digital payments. Make data-driven decisions with StepPay AI&apos;s prescriptive analytics.
+              Step up your business with our secure digital payments. Make data-driven decisions with StepPay Analytics&apos;s prescriptive analytics.
             </span>
           </div>
           <div className="flex h-[420px] md:h-[520px]">
@@ -339,8 +340,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Globe Section */}
+      <section className="container mx-auto px-4 pb-6 md:pb-8 relative z-10">
+        <div className="relative mx-auto flex min-h-96 w-full max-w-6xl flex-col items-center justify-center overflow-hidden px-4 pt-6 pb-6 md:pb-8">
+          <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">
+            Step Beyond Borders
+          </h2>
+          <CityGlobe className="mt-2" />
+          <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.15),rgba(255,255,255,0))]" />
+        </div>
+      </section>
+
       {/* Mono-Style Link Hub */}
-      <section className="container mx-auto px-4 py-20 relative z-10">
+      <section className="container mx-auto px-4 pt-6 md:pt-10 pb-20 relative z-10">
         <div className="relative max-w-7xl mx-auto">
           <Card className="relative overflow-hidden border border-border/70 bg-background/80 backdrop-blur-xl shadow-[0_30px_100px_-45px_hsl(var(--foreground)/0.35)]">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-background/30" />

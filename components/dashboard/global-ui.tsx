@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentType, type SVGProps } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ChevronDown, Ghost, Instagram, Menu } from "lucide-react"
+import { Check, ChevronDown, Ghost, Instagram, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { LiquidButton } from "@/components/ui/liquid-button"
 import { cn } from "@/lib/utils"
@@ -24,12 +25,10 @@ const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/transactions": "Transactions",
   "/dashboard/customers": "Customers",
+  "/dashboard/send-payment": "Send Payment",
   "/dashboard/refunds": "Refunds",
-  "/dashboard/payouts": "Payouts",
+  "/dashboard/payouts": "Pending",
   "/dashboard/disputes": "Disputes",
-  "/dashboard/transaction-splits": "Transaction Splits",
-  "/dashboard/subaccounts": "Subaccounts",
-  "/dashboard/terminals": "Terminals",
   "/dashboard/subscribers": "Subscribers",
   "/dashboard/plans": "Plans",
   "/dashboard/subscriptions": "Subscriptions",
@@ -72,6 +71,13 @@ const SHARE_ITEMS: SharePlatform[] = [
 ]
 
 const submenuTransition = { type: "spring", stiffness: 120, damping: 16, mass: 1 } as const
+const STEP_TAG_PATTERN = /^@[a-z0-9_]{3,20}$/
+
+function normalizeStepTag(rawValue: string) {
+  const compact = rawValue.trim().toLowerCase().replace(/\s+/g, "")
+  const withPrefix = compact.startsWith("@") ? compact : `@${compact}`
+  return withPrefix.replace(/[^@a-z0-9_]/g, "")
+}
 
 export function GlobalUI({
   mobileMenuOpen,
@@ -86,7 +92,13 @@ export function GlobalUI({
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [pictureMenuOpen, setPictureMenuOpen] = useState(false)
+  const [stepTagMenuOpen, setStepTagMenuOpen] = useState(false)
   const [referMenuOpen, setReferMenuOpen] = useState(false)
+  const [stepTag, setStepTag] = useState<string>("")
+  const [stepTagInput, setStepTagInput] = useState<string>("")
+  const [stepTagSaving, setStepTagSaving] = useState(false)
+  const [stepTagError, setStepTagError] = useState<string | null>(null)
+  const [stepTagSuccess, setStepTagSuccess] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
 
@@ -130,6 +142,40 @@ export function GlobalUI({
 
       if (user?.email) {
         setUserEmail(user.email)
+      }
+
+      let detectedStepTag: string | null = null
+      const metadataStepTag = user?.user_metadata?.step_tag
+      if (typeof metadataStepTag === "string" && metadataStepTag.trim().length > 0) {
+        setStepTag(metadataStepTag)
+        setStepTagInput(metadataStepTag)
+        localStorage.setItem("dashboard_step_tag", metadataStepTag)
+        localStorage.setItem("dashboard_step_tag_locked", "true")
+        detectedStepTag = metadataStepTag
+        window.dispatchEvent(new Event("dashboardNotificationsChanged"))
+      }
+
+      if (user?.id) {
+        const { data: merchantRow } = await getSupabaseClient()
+          .from("merchants")
+          .select("step_tag")
+          .eq("user_id", user.id)
+          .maybeSingle()
+
+        if (typeof merchantRow?.step_tag === "string" && merchantRow.step_tag.trim().length > 0) {
+          setStepTag(merchantRow.step_tag)
+          setStepTagInput(merchantRow.step_tag)
+          localStorage.setItem("dashboard_step_tag", merchantRow.step_tag)
+          localStorage.setItem("dashboard_step_tag_locked", "true")
+          detectedStepTag = merchantRow.step_tag
+          window.dispatchEvent(new Event("dashboardNotificationsChanged"))
+        }
+      }
+
+      if (!detectedStepTag) {
+        localStorage.removeItem("dashboard_step_tag")
+        localStorage.removeItem("dashboard_step_tag_locked")
+        window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       }
 
       const metadataName = user?.user_metadata?.business_name
@@ -188,6 +234,110 @@ export function GlobalUI({
     localStorage.removeItem("dashboard_profile_image")
   }
 
+  const saveStepTag = async () => {
+    if (stepTag) {
+      setStepTagError("StepTag is already set and cannot be changed.")
+      setStepTagSuccess(null)
+      return
+    }
+
+    const normalizedTag = normalizeStepTag(stepTagInput)
+    if (!STEP_TAG_PATTERN.test(normalizedTag)) {
+      setStepTagError("Use format @username (3-20 chars, letters, numbers, underscore).")
+      setStepTagSuccess(null)
+      return
+    }
+
+    setStepTagSaving(true)
+    setStepTagError(null)
+    setStepTagSuccess(null)
+
+    try {
+      const supabase = getSupabaseClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        throw new Error("You must be signed in to set a StepTag.")
+      }
+
+      const { data: currentMerchant, error: currentMerchantError } = await supabase
+        .from("merchants")
+        .select("step_tag")
+        .eq("user_id", user.id)
+        .maybeSingle()
+
+      if (currentMerchantError && currentMerchantError.code !== "PGRST116") {
+        throw new Error("Could not validate your current StepTag state.")
+      }
+
+      const existingStepTag = currentMerchant?.step_tag?.trim()
+      if (existingStepTag && existingStepTag !== normalizedTag) {
+        throw new Error("StepTag is already set and cannot be changed.")
+      }
+
+      if (existingStepTag === normalizedTag) {
+        setStepTag(normalizedTag)
+        setStepTagInput(normalizedTag)
+        setStepTagSuccess("StepTag already saved.")
+        localStorage.setItem("dashboard_step_tag", normalizedTag)
+        localStorage.setItem("dashboard_step_tag_locked", "true")
+        window.dispatchEvent(new Event("dashboardNotificationsChanged"))
+        return
+      }
+
+      const { data: existingRow, error: existingError } = await supabase
+        .from("merchants")
+        .select("user_id")
+        .eq("step_tag", normalizedTag)
+        .maybeSingle()
+
+      if (existingError && existingError.code !== "PGRST116") {
+        throw new Error("Could not validate StepTag uniqueness right now.")
+      }
+
+      if (existingRow && existingRow.user_id !== user.id) {
+        throw new Error("This StepTag is already taken. Try another one.")
+      }
+
+      const { error: merchantUpdateError } = await supabase
+        .from("merchants")
+        .update({ step_tag: normalizedTag })
+        .eq("user_id", user.id)
+
+      if (merchantUpdateError) {
+        const message = merchantUpdateError.message.toLowerCase()
+        if (merchantUpdateError.code === "23505" || message.includes("duplicate")) {
+          throw new Error("This StepTag is already taken. Try another one.")
+        }
+        if (message.includes("column") && message.includes("step_tag")) {
+          throw new Error("StepTag setup is not available yet. Please contact support.")
+        }
+        throw new Error("Could not save StepTag right now.")
+      }
+
+      const { error: userUpdateError } = await supabase.auth.updateUser({
+        data: { step_tag: normalizedTag },
+      })
+
+      if (userUpdateError) {
+        throw new Error("StepTag saved but account metadata sync failed. Refresh and try again.")
+      }
+
+      setStepTag(normalizedTag)
+      setStepTagInput(normalizedTag)
+      setStepTagSuccess("StepTag saved successfully.")
+      localStorage.setItem("dashboard_step_tag", normalizedTag)
+      localStorage.setItem("dashboard_step_tag_locked", "true")
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
+    } catch (error: any) {
+      setStepTagError(error.message || "Could not save StepTag.")
+    } finally {
+      setStepTagSaving(false)
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -220,6 +370,7 @@ export function GlobalUI({
               setAccountMenuOpen(open)
               if (!open) {
                 setPictureMenuOpen(false)
+                setStepTagMenuOpen(false)
                 setReferMenuOpen(false)
               }
             }}
@@ -292,6 +443,64 @@ export function GlobalUI({
                 className="justify-between"
                 onSelect={(event) => {
                   event.preventDefault()
+                  setStepTagMenuOpen((previous) => !previous)
+                  setStepTagError(null)
+                  setStepTagSuccess(null)
+                }}
+              >
+                <span>StepTag</span>
+                <ChevronDown className={cn("h-4 w-4 transition-transform", stepTagMenuOpen ? "rotate-180" : "")} />
+              </DropdownMenuItem>
+              <AnimatePresence initial={false}>
+                {stepTagMenuOpen ? (
+                  <motion.div
+                    key="steptag-submenu"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={submenuTransition}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-2 pb-2 pl-3 pr-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        Add your unique StepTag once. Format: @username
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={stepTagInput}
+                          onChange={(event) => setStepTagInput(normalizeStepTag(event.target.value))}
+                          placeholder="@username"
+                          disabled={Boolean(stepTag)}
+                          className="h-8 text-xs"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          disabled={Boolean(stepTag) || stepTagSaving}
+                          onClick={() => {
+                            void saveStepTag()
+                          }}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {stepTag ? (
+                        <p className="text-[11px] text-muted-foreground">
+                          Saved as <span className="font-semibold">{stepTag}</span>. This value is locked.
+                        </p>
+                      ) : null}
+                      {stepTagError ? <p className="text-[11px] text-destructive">{stepTagError}</p> : null}
+                      {stepTagSuccess ? <p className="text-[11px] text-emerald-600">{stepTagSuccess}</p> : null}
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <DropdownMenuItem
+                className="justify-between"
+                onSelect={(event) => {
+                  event.preventDefault()
                   setReferMenuOpen((previous) => !previous)
                 }}
               >
@@ -324,10 +533,6 @@ export function GlobalUI({
                   </motion.div>
                 ) : null}
               </AnimatePresence>
-
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">Settings</Link>
-              </DropdownMenuItem>
 
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/support">Support</Link>

@@ -126,6 +126,7 @@ export default function ProfilePage() {
         steps.push("profile")
         localStorage.setItem("compliance_steps", JSON.stringify(steps))
       }
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       setViewMode("review")
     }
   }
@@ -386,4 +387,3 @@ export default function ProfilePage() {
     </ComplianceAccessGuard>
   )
 }
-

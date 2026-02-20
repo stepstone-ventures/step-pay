@@ -123,6 +123,7 @@ export default function OwnerPage() {
         steps.push("owner")
         localStorage.setItem("compliance_steps", JSON.stringify(steps))
       }
+      window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       setViewMode("review")
     }
   }
@@ -386,4 +387,3 @@ export default function OwnerPage() {
     </ComplianceAccessGuard>
   )
 }
-

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export:liquid-logo-video": "node scripts/export-liquid-logo-video.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
