@@ -215,30 +215,8 @@ function LoginPageContent() {
         return
       }
 
-      // Successful login
-      const complianceComplete = localStorage.getItem("compliance_complete") === "true"
-      let complianceSteps: string[] = []
-      try {
-        const storedSteps = localStorage.getItem("compliance_steps")
-        if (storedSteps) {
-          const parsed = JSON.parse(storedSteps)
-          if (Array.isArray(parsed)) {
-            complianceSteps = parsed
-          }
-        }
-      } catch {
-        complianceSteps = []
-      }
-
-      const steps = ["profile", "contact", "owner", "account", "service-agreement"]
-      const nextStep = steps.find((step) => !complianceSteps.includes(step))
-
-      const targetRoute = !complianceComplete && nextStep
-        ? `/dashboard/compliance/${nextStep}`
-        : "/dashboard"
-
       // Force a full navigation so middleware reads the freshly written auth cookies.
-      window.location.assign(targetRoute)
+      window.location.assign("/dashboard")
     } catch (err: any) {
       setErrors({ general: "An unexpected error occurred. Please try again." })
     } finally {

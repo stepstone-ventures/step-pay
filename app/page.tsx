@@ -368,11 +368,11 @@ export default function Home() {
 
       {!hideGlobeSection ? (
         <section className="container mx-auto px-4 pb-6 md:pb-8 relative z-10">
-          <div className="relative mx-auto flex min-h-96 w-full max-w-6xl flex-col items-center justify-center overflow-hidden px-4 pt-6 pb-6 md:pb-8">
+          <div className="relative mx-auto flex min-h-[16.8rem] w-full max-w-[50.4rem] flex-col items-center justify-center overflow-hidden px-4 pt-4 pb-4 md:pb-6">
             <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">
               Step Beyond Borders
             </h2>
-            <CityGlobe className="mt-2" />
+            <CityGlobe className="mt-2 max-w-[532px]" />
             <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.15),rgba(255,255,255,0))]" />
           </div>
         </section>

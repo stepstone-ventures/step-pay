@@ -39,7 +39,7 @@ import {
 } from "lucide-react"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = ["USD", "EUR", "JPY", "GBP", "CNY", "GHS", "NGN", "ZAR"]
 const paymentMethods = ["Card", "Bank Transfer", "Mobile Money"]
 const timezones = [
   "Africa/Accra (GMT+0)",
