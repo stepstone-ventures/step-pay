@@ -19,10 +19,20 @@ type MerchantRecipient = {
   step_tag: string
 }
 
+type RecipientType = "steppay" | "non-steppay"
+type NonStepPayMethod = "credit-card" | "bank-account" | "mobile-money"
+
 const STEP_TAG_PATTERN = /^@[a-z0-9_]{3,20}$/
 const USED_REFERENCES_KEY = "send_payment_reference_history_v1"
-const PROCESS_STEPS = [
+const COMPLIANCE_STEP_IDS = ["profile", "contact", "owner", "account", "service-agreement"] as const
+const PROCESS_STEPS_STEPPAY = [
   "Validating recipient StepTag",
+  "Preparing transfer details",
+  "Submitting payment",
+  "Finalizing transaction",
+]
+const PROCESS_STEPS_NON_STEPPAY = [
+  "Validating recipient details",
   "Preparing transfer details",
   "Submitting payment",
   "Finalizing transaction",
@@ -75,11 +85,31 @@ function createUniqueReference() {
   return reference
 }
 
+function getComplianceProgress() {
+  if (typeof window === "undefined") return 0
+
+  try {
+    const completed = new Set<string>(JSON.parse(localStorage.getItem("compliance_steps") || "[]"))
+    return COMPLIANCE_STEP_IDS.reduce((count, step) => (completed.has(step) ? count + 1 : count), 0)
+  } catch {
+    return 0
+  }
+}
+
 export default function SendPaymentPage() {
   const router = useRouter()
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
   const mountedRef = useRef(true)
 
+  const [recipientType, setRecipientType] = useState<RecipientType>("steppay")
+  const [nonStepPayMethod, setNonStepPayMethod] = useState<NonStepPayMethod>("bank-account")
+  const [recipientName, setRecipientName] = useState("")
+  const [bankName, setBankName] = useState("")
+  const [accountNumber, setAccountNumber] = useState("")
+  const [cardNumber, setCardNumber] = useState("")
+  const [cardExpiry, setCardExpiry] = useState("")
+  const [mobileProvider, setMobileProvider] = useState("")
+  const [mobileNumber, setMobileNumber] = useState("")
   const [recipientInput, setRecipientInput] = useState("")
   const [recipient, setRecipient] = useState<MerchantRecipient | null>(null)
   const [recipientError, setRecipientError] = useState<string | null>(null)
@@ -94,6 +124,10 @@ export default function SendPaymentPage() {
   const [currentStep, setCurrentStep] = useState(0)
 
   const parsedAmount = useMemo(() => Number.parseFloat(amount), [amount])
+  const processSteps = useMemo(
+    () => (recipientType === "steppay" ? PROCESS_STEPS_STEPPAY : PROCESS_STEPS_NON_STEPPAY),
+    [recipientType]
+  )
 
   const getSupabase = () => {
     if (!supabaseRef.current) {
@@ -164,9 +198,48 @@ export default function SendPaymentPage() {
     event.preventDefault()
     setFormError(null)
 
-    const resolvedRecipient = recipient ?? (await verifyRecipient())
-    if (!resolvedRecipient) {
+    if (getComplianceProgress() < COMPLIANCE_STEP_IDS.length) {
+      setFormError("Complete all 5 compliance steps before making transactions.")
       return
+    }
+
+    let resolvedRecipient: MerchantRecipient | null = null
+    let externalRecipientSummary: string | null = null
+
+    if (recipientType === "steppay") {
+      resolvedRecipient = recipient ?? (await verifyRecipient())
+      if (!resolvedRecipient) {
+        return
+      }
+    } else {
+      if (!recipientName.trim()) {
+        setFormError("Recipient name is required for non-StepPay transfers.")
+        return
+      }
+
+      if (nonStepPayMethod === "bank-account") {
+        if (!bankName.trim() || !accountNumber.trim()) {
+          setFormError("Enter both bank name and account number.")
+          return
+        }
+        externalRecipientSummary = `${recipientName.trim()} - ${bankName.trim()} - ${accountNumber.trim()}`
+      }
+
+      if (nonStepPayMethod === "credit-card") {
+        if (!cardNumber.trim() || !cardExpiry.trim()) {
+          setFormError("Enter both card number and card expiry.")
+          return
+        }
+        externalRecipientSummary = `${recipientName.trim()} - ${cardNumber.trim()} - ${cardExpiry.trim()}`
+      }
+
+      if (nonStepPayMethod === "mobile-money") {
+        if (!mobileProvider.trim() || !mobileNumber.trim()) {
+          setFormError("Enter both mobile money provider and number.")
+          return
+        }
+        externalRecipientSummary = `${recipientName.trim()} - ${mobileProvider.trim()} - ${mobileNumber.trim()}`
+      }
     }
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
@@ -184,12 +257,12 @@ export default function SendPaymentPage() {
     setCurrentStep(0)
 
     try {
-      for (let step = 0; step < PROCESS_STEPS.length; step++) {
+      for (let step = 0; step < processSteps.length; step++) {
         if (!mountedRef.current) {
           return
         }
         setCurrentStep(step)
-        await wait(step === PROCESS_STEPS.length - 1 ? 650 : 850)
+        await wait(step === processSteps.length - 1 ? 650 : 850)
       }
 
       if (!mountedRef.current) {
@@ -203,7 +276,12 @@ export default function SendPaymentPage() {
       localStorage.setItem(
         "send_payment_last_transfer",
         JSON.stringify({
-          recipientStepTag: resolvedRecipient.step_tag,
+          recipientType,
+          recipientMethod: recipientType === "steppay" ? "steptag" : nonStepPayMethod,
+          recipientStepTag: resolvedRecipient?.step_tag ?? null,
+          recipientSummary: recipientType === "steppay"
+            ? resolvedRecipient?.step_tag ?? null
+            : externalRecipientSummary,
           amount: parsedAmount,
           currency,
           reference,
@@ -230,63 +308,192 @@ export default function SendPaymentPage() {
         <CardHeader>
           <CardTitle className="text-xl">Send Payment</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Send funds to another StepPay business account using StepTag only.
+            Send funds to StepPay users or non-StepPay recipients.
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label>Recipient Method</Label>
-              <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium">
-                StepTag (@username)
-              </div>
+              <Label htmlFor="recipient-type">Recipient Type</Label>
+              <Select
+                value={recipientType}
+                onValueChange={(value: RecipientType) => {
+                  setRecipientType(value)
+                  setRecipient(null)
+                  setRecipientError(null)
+                }}
+              >
+                <SelectTrigger id="recipient-type" className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="steppay">StepPay User</SelectItem>
+                  <SelectItem value="non-steppay">Non-StepPay User</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="recipient">Recipient StepTag</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="recipient"
-                  value={recipientInput}
-                  onChange={(event) => {
-                    setRecipientInput(normalizeStepTag(event.target.value))
-                    setRecipient(null)
-                    setRecipientError(null)
-                  }}
-                  placeholder="@business"
-                  autoComplete="off"
-                  className="h-10"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    void verifyRecipient()
-                  }}
-                  disabled={recipientLoading}
-                  className="h-10"
-                >
-                  {recipientLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
-                </Button>
-              </div>
-              {recipientError ? (
-                <p className="flex items-center gap-1 text-xs text-destructive">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {recipientError}
-                </p>
-              ) : null}
-              {recipient ? (
-                <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/5 px-3 py-2 text-xs">
-                  <p className="flex items-center gap-1 font-medium text-emerald-700">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Recipient verified
-                  </p>
-                  <p className="mt-1 text-muted-foreground">
-                    {recipient.business_name || recipient.email || recipient.step_tag} ({recipient.step_tag})
-                  </p>
+              <Label>Recipient Method</Label>
+              {recipientType === "steppay" ? (
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium">
+                  StepTag (@username)
                 </div>
-              ) : null}
+              ) : (
+                <Select
+                  value={nonStepPayMethod}
+                  onValueChange={(value: NonStepPayMethod) => {
+                    setNonStepPayMethod(value)
+                    setFormError(null)
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit-card">Credit Card</SelectItem>
+                    <SelectItem value="bank-account">Bank Account</SelectItem>
+                    <SelectItem value="mobile-money">Mobile Money</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
+
+            {recipientType === "steppay" ? (
+              <div className="space-y-2">
+                <Label htmlFor="recipient">Recipient StepTag</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="recipient"
+                    value={recipientInput}
+                    onChange={(event) => {
+                      setRecipientInput(normalizeStepTag(event.target.value))
+                      setRecipient(null)
+                      setRecipientError(null)
+                    }}
+                    placeholder="@business"
+                    autoComplete="off"
+                    className="h-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      void verifyRecipient()
+                    }}
+                    disabled={recipientLoading}
+                    className="h-10"
+                  >
+                    {recipientLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                  </Button>
+                </div>
+                {recipientError ? (
+                  <p className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {recipientError}
+                  </p>
+                ) : null}
+                {recipient ? (
+                  <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/5 px-3 py-2 text-xs">
+                    <p className="flex items-center gap-1 font-medium text-emerald-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Recipient verified
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      {recipient.business_name || recipient.email || recipient.step_tag} ({recipient.step_tag})
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="recipient-name">Recipient Name</Label>
+                  <Input
+                    id="recipient-name"
+                    value={recipientName}
+                    onChange={(event) => setRecipientName(event.target.value)}
+                    placeholder="Recipient full name"
+                    className="h-10"
+                  />
+                </div>
+
+                {nonStepPayMethod === "bank-account" ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="bank-name">Bank Name</Label>
+                      <Input
+                        id="bank-name"
+                        value={bankName}
+                        onChange={(event) => setBankName(event.target.value)}
+                        placeholder="Bank name"
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="account-number">Account Number</Label>
+                      <Input
+                        id="account-number"
+                        value={accountNumber}
+                        onChange={(event) => setAccountNumber(event.target.value)}
+                        placeholder="Account number"
+                        className="h-10"
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {nonStepPayMethod === "credit-card" ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="card-number">Card Number</Label>
+                      <Input
+                        id="card-number"
+                        value={cardNumber}
+                        onChange={(event) => setCardNumber(event.target.value)}
+                        placeholder="1234 5678 9012 3456"
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="card-expiry">Card Expiry</Label>
+                      <Input
+                        id="card-expiry"
+                        value={cardExpiry}
+                        onChange={(event) => setCardExpiry(event.target.value)}
+                        placeholder="MM/YY"
+                        className="h-10"
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {nonStepPayMethod === "mobile-money" ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-provider">Mobile Money Provider</Label>
+                      <Input
+                        id="mobile-provider"
+                        value={mobileProvider}
+                        onChange={(event) => setMobileProvider(event.target.value)}
+                        placeholder="MTN, Airtel, Vodafone..."
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-number">Mobile Number</Label>
+                      <Input
+                        id="mobile-number"
+                        value={mobileNumber}
+                        onChange={(event) => setMobileNumber(event.target.value)}
+                        placeholder="+233..."
+                        className="h-10"
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -374,7 +581,7 @@ export default function SendPaymentPage() {
         open={loaderOpen}
         title="Sending payment"
         description="Please keep this window open while we process your transfer."
-        steps={PROCESS_STEPS}
+        steps={processSteps}
         currentStep={currentStep}
       />
     </div>

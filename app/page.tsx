@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
@@ -109,6 +109,32 @@ const STEP_CARDS = [
 
 export default function Home() {
   const [activeStepIndex, setActiveStepIndex] = useState(0)
+  const [hideGlobeSection, setHideGlobeSection] = useState(false)
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 767px)")
+    const tabletQuery = window.matchMedia("(min-width: 768px) and (max-width: 1024px)")
+
+    const updateVisibility = () => {
+      const nav = navigator as Navigator & { deviceMemory?: number }
+      const deviceMemory = nav.deviceMemory ?? 8
+      const cpuCores = navigator.hardwareConcurrency ?? 8
+      const weakHardware = deviceMemory <= 4 || cpuCores <= 4
+
+      const isMobileView = mobileQuery.matches
+      const isWeakTablet = tabletQuery.matches && weakHardware
+      setHideGlobeSection(isMobileView || isWeakTablet)
+    }
+
+    updateVisibility()
+    mobileQuery.addEventListener("change", updateVisibility)
+    tabletQuery.addEventListener("change", updateVisibility)
+
+    return () => {
+      mobileQuery.removeEventListener("change", updateVisibility)
+      tabletQuery.removeEventListener("change", updateVisibility)
+    }
+  }, [])
 
   const goToStep = (index: number) => {
     const normalized = (index + STEP_CARDS.length) % STEP_CARDS.length
@@ -340,16 +366,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Globe Section */}
-      <section className="container mx-auto px-4 pb-6 md:pb-8 relative z-10">
-        <div className="relative mx-auto flex min-h-96 w-full max-w-6xl flex-col items-center justify-center overflow-hidden px-4 pt-6 pb-6 md:pb-8">
-          <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">
-            Step Beyond Borders
-          </h2>
-          <CityGlobe className="mt-2" />
-          <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.15),rgba(255,255,255,0))]" />
-        </div>
-      </section>
+      {!hideGlobeSection ? (
+        <section className="container mx-auto px-4 pb-6 md:pb-8 relative z-10">
+          <div className="relative mx-auto flex min-h-96 w-full max-w-6xl flex-col items-center justify-center overflow-hidden px-4 pt-6 pb-6 md:pb-8">
+            <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">
+              Step Beyond Borders
+            </h2>
+            <CityGlobe className="mt-2" />
+            <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.15),rgba(255,255,255,0))]" />
+          </div>
+        </section>
+      ) : null}
 
       {/* Mono-Style Link Hub */}
       <section className="container mx-auto px-4 pt-6 md:pt-10 pb-20 relative z-10">

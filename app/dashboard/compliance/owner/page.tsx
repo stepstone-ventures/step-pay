@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,13 +10,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2, Upload, FileText } from "lucide-react"
 import Link from "next/link"
 import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
+import {
+  NORMALIZED_FALLBACK_PHONE_CODES,
+  normalizePhoneCodeOptions,
+  toCountryOptions,
+  type PhoneCodeOption,
+  type RawPhoneCodeOption,
+} from "@/lib/phone-code-options"
 
-const idDocumentTypes = ["Passport", "Ghana Card"]
+const idDocumentTypes = ["Passport", "National ID", "Driver's License", "Residence Permit"]
 
 export default function OwnerPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [viewMode, setViewMode] = useState<"form" | "review">("form")
+  const [phoneCodeOptions, setPhoneCodeOptions] = useState<PhoneCodeOption[]>(NORMALIZED_FALLBACK_PHONE_CODES)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -29,6 +37,57 @@ export default function OwnerPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [documentPreview, setDocumentPreview] = useState<string | null>(null)
+
+  const countryOptions = useMemo(() => toCountryOptions(phoneCodeOptions), [phoneCodeOptions])
+  const nationalityOptions = useMemo(() => {
+    if (!formData.nationality) return countryOptions
+    if (countryOptions.some((option) => option.value === formData.nationality)) return countryOptions
+    return [{ value: formData.nationality, label: formData.nationality, flag: "🏳️" }, ...countryOptions]
+  }, [countryOptions, formData.nationality])
+
+  useEffect(() => {
+    let active = true
+
+    const loadPhoneCodes = async () => {
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,idd,flag")
+        if (!response.ok) return
+        const countries = await response.json()
+        const fetchedOptions: RawPhoneCodeOption[] = []
+
+        for (const country of countries) {
+          const root = country?.idd?.root
+          const suffixes: string[] = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : []
+          const name = country?.name?.common
+          const flag = country?.flag ?? "🏳️"
+          if (!root || !name || suffixes.length === 0) continue
+
+          const dialCodes = suffixes
+            .map((suffix) => `${root}${suffix}`.replace(/[^\d+]/g, ""))
+            .filter((dialCode) => /^\+\d{1,3}$/.test(dialCode))
+
+          for (const dialCode of dialCodes) {
+            fetchedOptions.push({
+              dialCode,
+              label: `${flag} ${name} (${dialCode})`,
+            })
+          }
+        }
+
+        const normalized = normalizePhoneCodeOptions(fetchedOptions)
+        if (active && normalized.length > 0) {
+          setPhoneCodeOptions(normalized)
+        }
+      } catch {
+        // Keep fallback options on network failure.
+      }
+    }
+
+    void loadPhoneCodes()
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     // Load saved data
@@ -287,13 +346,18 @@ export default function OwnerPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="nationality">Nationality *</Label>
-                <Input
-                  id="nationality"
-                  placeholder="Ghanaian"
-                  value={formData.nationality}
-                  onChange={(e) => handleChange("nationality", e.target.value)}
-                  className={errors.nationality ? "border-destructive" : ""}
-                />
+                <Select value={formData.nationality} onValueChange={(value) => handleChange("nationality", value)}>
+                  <SelectTrigger id="nationality" className={errors.nationality ? "border-destructive" : ""}>
+                    <SelectValue placeholder="Select nationality" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nationalityOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.nationality && (
                   <p className="text-sm text-destructive">{errors.nationality}</p>
                 )}

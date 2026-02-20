@@ -1,15 +1,15 @@
-type RawPhoneCodeOption = {
+export type RawPhoneCodeOption = {
   dialCode: string
   label: string
 }
 
-type PhoneCodeOption = RawPhoneCodeOption & {
+export type PhoneCodeOption = RawPhoneCodeOption & {
   id: string
   country: string
   flag: string
 }
 
-const FALLBACK_PHONE_CODES: RawPhoneCodeOption[] = [
+export const FALLBACK_PHONE_CODES: RawPhoneCodeOption[] = [
   { dialCode: "+1", label: "🇺🇸 United States (+1)" },
   { dialCode: "+7", label: "🇷🇺 Russia (+7)" },
   { dialCode: "+20", label: "🇪🇬 Egypt (+20)" },
@@ -203,7 +203,7 @@ const normalizeCountryName = (countryName: string) => {
   return countryName
 }
 
-const normalizePhoneCodeOptions = (options: RawPhoneCodeOption[]): PhoneCodeOption[] => {
+export const normalizePhoneCodeOptions = (options: RawPhoneCodeOption[]): PhoneCodeOption[] => {
   const byCountry = new Map<string, { country: string; flag: string; dialCode: string }>()
 
   for (const option of options) {
@@ -245,4 +245,18 @@ const normalizePhoneCodeOptions = (options: RawPhoneCodeOption[]): PhoneCodeOpti
     }))
 }
 
-const NORMALIZED_FALLBACK_PHONE_CODES = normalizePhoneCodeOptions(FALLBACK_PHONE_CODES)
+export const NORMALIZED_FALLBACK_PHONE_CODES = normalizePhoneCodeOptions(FALLBACK_PHONE_CODES)
+
+export type CountryOption = {
+  value: string
+  label: string
+  flag: string
+}
+
+export const toCountryOptions = (phoneCodeOptions: PhoneCodeOption[]): CountryOption[] => {
+  return phoneCodeOptions.map((option) => ({
+    value: option.country,
+    label: `${option.flag} ${option.country}`,
+    flag: option.flag,
+  }))
+}

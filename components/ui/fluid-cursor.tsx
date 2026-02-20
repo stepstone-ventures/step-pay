@@ -1112,20 +1112,21 @@ export function FluidCursor({
     const handleTouchStart = (event: TouchEvent) => {
       const pointer = pointers[0]
       if (!pointer) return
-      const touches = event.targetTouches
+      const touches = event.touches
       for (let i = 0; i < touches.length; i += 1) {
         const touch = touches[i]
         if (!touch) continue
         const posX = scaleByPixelRatio(touch.clientX)
         const posY = scaleByPixelRatio(touch.clientY)
         updatePointerDownData(pointer, touch.identifier, posX, posY)
+        clickSplat(pointer)
       }
     }
 
     const handleTouchMove = (event: TouchEvent) => {
       const pointer = pointers[0]
       if (!pointer) return
-      const touches = event.targetTouches
+      const touches = event.touches
       for (let i = 0; i < touches.length; i += 1) {
         const touch = touches[i]
         if (!touch) continue

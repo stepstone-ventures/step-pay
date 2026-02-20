@@ -199,7 +199,11 @@ Nationality: ${ownerData.nationality || "N/A"}
 
 Account Information:
 Account Type: ${accountData.accountType || "N/A"}
-${accountData.accountType === "Bank Account" ? `Bank: ${accountData.bankName || "N/A"}\nAccount Number: ${accountData.bankAccountNumber || "N/A"}` : `Provider: ${accountData.mobileMoneyProvider || "N/A"}\nPhone: ${accountData.mobileMoneyPhone || "N/A"}`}
+${accountData.accountType === "Bank Account"
+  ? `Bank: ${accountData.bankName || "N/A"}\nAccount Number: ${accountData.bankAccountNumber || "N/A"}`
+  : accountData.accountType === "Card"
+    ? `Card Number: ${accountData.cardNumber ? `****${String(accountData.cardNumber).replace(/\D/g, "").slice(-4)}` : "N/A"}\nCard Expiry: ${accountData.cardExpiry || "N/A"}`
+    : `Provider: ${accountData.mobileMoneyProvider || "N/A"}\nPhone: ${accountData.mobileMoneyPhone || "N/A"}`}
 Name on Account: ${accountData.nameOnAccount || "N/A"}
 
 TERMS AND CONDITIONS:
@@ -220,7 +224,7 @@ Both parties agree to maintain appropriate security measures to protect customer
 Either party may terminate this Agreement with 30 days written notice.
 
 6. DISPUTE RESOLUTION
-Any disputes arising from this Agreement shall be resolved through arbitration in accordance with Ghanaian law.
+Any disputes arising from this Agreement shall be resolved through arbitration in accordance with the applicable laws of the Merchant's operating jurisdiction.
 
 7. ACCEPTANCE
 By signing this Agreement, the Merchant accepts all terms and conditions set forth herein.
@@ -390,7 +394,7 @@ Date: ${new Date().toLocaleDateString()}
                   <Input
                     id="phoneNumber"
                     type="tel"
-                    placeholder="+233 24 123 4567"
+                    placeholder="+1 555 123 4567"
                     value={formData.phoneNumber}
                     onChange={(e) => handleChange("phoneNumber", e.target.value)}
                     className={errors.phoneNumber ? "border-destructive" : ""}

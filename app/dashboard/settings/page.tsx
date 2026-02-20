@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,9 +27,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Highlight } from "@/components/animate-ui/primitives/effects/highlight"
 import {
-  User,
-  Mail,
-  CreditCard,
   Settings as SettingsIcon,
   Users,
   Key,
@@ -40,9 +37,10 @@ import {
   X,
   Upload,
 } from "lucide-react"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
-const paymentMethods = ["Card", "Mobile Money", "Bank Transfer", "USSD"]
+const paymentMethods = ["Card", "Bank Transfer", "Mobile Money"]
 const timezones = [
   "Africa/Accra (GMT+0)",
   "Africa/Lagos (GMT+1)",
@@ -62,30 +60,16 @@ interface TeamMember {
 const mockTeamMembers: TeamMember[] = []
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("profile")
-
-  // Profile State
-  const [profileData, setProfileData] = useState({
-    tradingName: "Stepstone Ventures",
-    description: "",
-    staffSize: "",
-    industry: "",
-    category: "",
-    businessType: "Registered Business",
-  })
-
-  // Contact State
-  const [contactData, setContactData] = useState({
-    generalEmail: "",
-    supportEmail: "",
-    disputeEmail: "",
-    useGeneralEmail: false,
-  })
+  const [activeTab, setActiveTab] = useState("preferences")
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
 
   // Preferences State
   const [preferences, setPreferences] = useState({
     defaultCurrency: "GHS",
-    paymentMethods: ["Card", "Mobile Money"],
+    paymentMethods: ["Card", "Bank Transfer"],
     receiptRecipients: "customer",
     dailyIssueReports: false,
     webhookExpiringCards: false,
@@ -114,44 +98,130 @@ export default function SettingsPage() {
     testWebhookUrl: "",
   })
 
-  const handleSaveProfile = () => {
-    // Save profile logic
-    console.log("Saving profile:", profileData)
+  const getSupabaseClient = () => {
+    if (!supabaseRef.current) {
+      supabaseRef.current = createSupabaseBrowserClient()
+    }
+    return supabaseRef.current
   }
 
-  const handleSaveContact = () => {
-    // Save contact logic
-    console.log("Saving contact:", contactData)
+  const persistSettingsMetadata = async (payload: Record<string, unknown>) => {
+    const supabase = getSupabaseClient()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError) throw userError
+    if (!user) return
+
+    const existing = user.user_metadata || {}
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: {
+        ...existing,
+        ...payload,
+      },
+    })
+
+    if (updateError) throw updateError
   }
 
-  const handleSavePreferences = () => {
-    // Save preferences logic
-    console.log("Saving preferences:", preferences)
+  useEffect(() => {
+    try {
+      const storedPreferences = localStorage.getItem("settings_preferences")
+      const storedTeamMembers = localStorage.getItem("settings_team_members")
+      const storedApiKeys = localStorage.getItem("settings_api_keys")
+
+      if (storedPreferences) {
+        setPreferences((previous) => ({ ...previous, ...JSON.parse(storedPreferences) }))
+      }
+
+      if (storedTeamMembers) {
+        const parsed = JSON.parse(storedTeamMembers)
+        if (Array.isArray(parsed)) {
+          setTeamMembers(parsed)
+        }
+      }
+
+      if (storedApiKeys) {
+        setApiKeys((previous) => ({ ...previous, ...JSON.parse(storedApiKeys) }))
+      }
+    } catch {
+      // Use defaults when local data is invalid.
+    }
+  }, [])
+
+  const handleSavePreferences = async () => {
+    try {
+      setStatusError(null)
+      localStorage.setItem("settings_preferences", JSON.stringify(preferences))
+      await persistSettingsMetadata({ settings_preferences: preferences })
+      setStatusMessage("Preferences saved successfully.")
+    } catch {
+      setStatusError("Could not save preferences right now. Please try again.")
+    }
+  }
+
+  const handleSaveApiKeys = async () => {
+    try {
+      setStatusError(null)
+      localStorage.setItem("settings_api_keys", JSON.stringify(apiKeys))
+      await persistSettingsMetadata({ settings_api_keys: apiKeys })
+      setStatusMessage("API settings saved successfully.")
+    } catch {
+      setStatusError("Could not save API settings right now. Please try again.")
+    }
   }
 
   const handleAddTeamMember = () => {
     if (newTeamMember.name && newTeamMember.email && newTeamMember.role) {
       const member: TeamMember = {
-        id: Date.now().toString(),
+        id: editingMemberId || Date.now().toString(),
         name: newTeamMember.name,
         email: newTeamMember.email,
         role: newTeamMember.role,
         permissions: [],
       }
-      setTeamMembers([...teamMembers, member])
+      const nextMembers = editingMemberId
+        ? teamMembers.map((existing) => (existing.id === editingMemberId ? member : existing))
+        : [...teamMembers, member]
+
+      setTeamMembers(nextMembers)
+      localStorage.setItem("settings_team_members", JSON.stringify(nextMembers))
       setNewTeamMember({ name: "", email: "", role: "" })
       setShowAddTeamMember(false)
+      setEditingMemberId(null)
+      setStatusMessage(editingMemberId ? "Team member updated." : "Team member added.")
     }
   }
 
   const handleRemoveTeamMember = (id: string) => {
-    setTeamMembers(teamMembers.filter((m) => m.id !== id))
+    const nextMembers = teamMembers.filter((m) => m.id !== id)
+    setTeamMembers(nextMembers)
+    localStorage.setItem("settings_team_members", JSON.stringify(nextMembers))
+    setStatusMessage("Team member removed.")
+  }
+
+  const handleEditTeamMember = (member: TeamMember) => {
+    setNewTeamMember({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+    })
+    setEditingMemberId(member.id)
+    setShowAddTeamMember(true)
+  }
+
+  const handleCopyValue = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setStatusMessage("Copied to clipboard.")
+    } catch {
+      setStatusError("Clipboard copy failed. Please copy manually.")
+    }
   }
 
   const tabs = [
-    { id: "profile", label: "Profile", icon: User },
-    { id: "contact", label: "Contact", icon: Mail },
-    { id: "accounts", label: "Accounts", icon: CreditCard },
     { id: "preferences", label: "Preferences", icon: SettingsIcon },
     { id: "team", label: "Team", icon: Users },
     { id: "api-keys", label: "API Keys & Webhooks", icon: Key },
@@ -159,6 +229,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 pt-6">
+      {statusMessage ? (
+        <div className="rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-700">
+          {statusMessage}
+        </div>
+      ) : null}
+      {statusError ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {statusError}
+        </div>
+      ) : null}
 
       {/* Tabs */}
       <div className="border-b">
@@ -185,211 +265,6 @@ export default function SettingsPage() {
           })}
         </Highlight>
       </div>
-
-      {/* Profile Tab */}
-      {activeTab === "profile" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              Update your business profile information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tradingName">Trading Name</Label>
-              <Input
-                id="tradingName"
-                value={profileData.tradingName}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, tradingName: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={profileData.description}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, description: e.target.value })
-                }
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="staffSize">Staff Size</Label>
-                <Input
-                  id="staffSize"
-                  type="number"
-                  value={profileData.staffSize}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, staffSize: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry</Label>
-                <Input
-                  id="industry"
-                  value={profileData.industry}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, industry: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={profileData.category}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, category: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="businessType">Business Type</Label>
-                <Select
-                  value={profileData.businessType}
-                  onValueChange={(value) =>
-                    setProfileData({ ...profileData, businessType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Starter Business">Starter Business</SelectItem>
-                    <SelectItem value="Registered Business">Registered Business</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t">
-              <Button onClick={handleSaveProfile}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Contact Tab */}
-      {activeTab === "contact" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>
-              Manage your email addresses for different purposes
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="generalEmail">General Email</Label>
-              <Input
-                id="generalEmail"
-                type="email"
-                value={contactData.generalEmail}
-                onChange={(e) =>
-                  setContactData({ ...contactData, generalEmail: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="supportEmail">Support Email</Label>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="useGeneralEmail"
-                    checked={contactData.useGeneralEmail}
-                    onCheckedChange={(checked) =>
-                      setContactData({ ...contactData, useGeneralEmail: checked })
-                    }
-                  />
-                  <Label htmlFor="useGeneralEmail" className="text-sm font-normal">
-                    Use General Email
-                  </Label>
-                </div>
-              </div>
-              <Input
-                id="supportEmail"
-                type="email"
-                value={contactData.supportEmail}
-                onChange={(e) =>
-                  setContactData({ ...contactData, supportEmail: e.target.value })
-                }
-                disabled={contactData.useGeneralEmail}
-                placeholder={contactData.useGeneralEmail ? "Will use General Email" : ""}
-              />
-              <p className="text-xs text-muted-foreground">
-                This email is where customers can reach you for help
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="disputeEmail">Dispute Email</Label>
-              <Input
-                id="disputeEmail"
-                type="email"
-                value={contactData.disputeEmail}
-                onChange={(e) =>
-                  setContactData({ ...contactData, disputeEmail: e.target.value })
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Disputes are time-sensitive. Use an actively-monitored email. We'll notify you once
-                a dispute is raised.
-              </p>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t">
-              <Button onClick={handleSaveContact}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Accounts Tab */}
-      {activeTab === "accounts" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Bank Accounts & Mobile Money</CardTitle>
-                <CardDescription>
-                  Manage your payout accounts and subaccounts
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-12">
-              <CreditCard className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Accounts Added</h3>
-              <p className="text-muted-foreground mb-6">
-                Add a bank account or mobile money account to receive payouts
-              </p>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Preferences Tab */}
       {activeTab === "preferences" && (
@@ -731,7 +606,11 @@ export default function SettingsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditTeamMember(member)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
@@ -772,7 +651,9 @@ export default function SettingsPage() {
                     readOnly
                     className="font-mono"
                   />
-                  <Button variant="outline">Copy</Button>
+                  <Button variant="outline" onClick={() => handleCopyValue(apiKeys.testSecretKey)}>
+                    Copy
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Keep this key secret. Never share it publicly.
@@ -787,7 +668,9 @@ export default function SettingsPage() {
                     readOnly
                     className="font-mono"
                   />
-                  <Button variant="outline">Copy</Button>
+                  <Button variant="outline" onClick={() => handleCopyValue(apiKeys.testPublicKey)}>
+                    Copy
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   This key can be safely exposed in client-side code.
@@ -854,7 +737,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex justify-end">
-            <Button>
+            <Button onClick={handleSaveApiKeys}>
               <Save className="mr-2 h-4 w-4" />
               Save Changes
             </Button>
@@ -866,9 +749,9 @@ export default function SettingsPage() {
       <Dialog open={showAddTeamMember} onOpenChange={setShowAddTeamMember}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Team Member</DialogTitle>
+            <DialogTitle>{editingMemberId ? "Edit Team Member" : "Add Team Member"}</DialogTitle>
             <DialogDescription>
-              Add a new team member to your account
+              {editingMemberId ? "Update team member details" : "Add a new team member to your account"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -915,10 +798,19 @@ export default function SettingsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddTeamMember(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddTeamMember(false)
+                setEditingMemberId(null)
+                setNewTeamMember({ name: "", email: "", role: "" })
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddTeamMember}>Add Member</Button>
+            <Button onClick={handleAddTeamMember}>
+              {editingMemberId ? "Save Changes" : "Add Member"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

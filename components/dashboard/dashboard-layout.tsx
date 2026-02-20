@@ -1,12 +1,51 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { GlobalUI } from "./global-ui"
 import { ContactUsFab } from "./contact-us-fab"
 
+const COMPLIANCE_STEP_IDS = new Set(["profile", "contact", "owner", "account", "service-agreement"])
+const TRANSACTION_ROUTE_PREFIXES = [
+  "/dashboard/transactions",
+  "/dashboard/send-payment",
+  "/dashboard/payouts",
+  "/dashboard/refunds",
+  "/dashboard/payments",
+  "/dashboard/payment-pages",
+  "/dashboard/subscriptions",
+  "/dashboard/orders",
+  "/dashboard/invoices",
+]
+
+function hasTransactionAccess() {
+  if (typeof window === "undefined") return false
+  if (localStorage.getItem("compliance_complete") === "true") return true
+  try {
+    const parsed = JSON.parse(localStorage.getItem("compliance_steps") || "[]")
+    if (!Array.isArray(parsed)) return false
+    const completed = new Set(parsed.filter((step) => COMPLIANCE_STEP_IDS.has(step)))
+    return completed.size >= COMPLIANCE_STEP_IDS.size
+  } catch {
+    return false
+  }
+}
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    const requiresCompliance = TRANSACTION_ROUTE_PREFIXES.some((prefix) =>
+      pathname?.startsWith(prefix)
+    )
+
+    if (requiresCompliance && !hasTransactionAccess()) {
+      router.replace("/dashboard/compliance")
+    }
+  }, [pathname, router])
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">

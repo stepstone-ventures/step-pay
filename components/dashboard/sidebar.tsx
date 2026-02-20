@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
-  AlertCircle,
   Calendar,
   Check,
   ChevronRight,
@@ -57,7 +56,6 @@ const sectionNavigation = [
       { name: "Customers", href: "/dashboard/customers", icon: Users },
       { name: "Send Payment", href: "/dashboard/send-payment", icon: SendHorizontal },
       { name: "Pending", href: "/dashboard/payouts", icon: Wallet },
-      { name: "Disputes", href: "/dashboard/disputes", icon: AlertCircle },
       { name: "Refunds", href: "/dashboard/refunds", icon: RotateCcw },
     ],
   },

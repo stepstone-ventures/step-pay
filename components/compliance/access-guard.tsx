@@ -1,4 +1,4 @@
-\"use client\"
+"use client"
 
 import type { ComplianceStep } from "@/lib/compliance-utils"
 

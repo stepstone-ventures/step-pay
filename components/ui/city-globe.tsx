@@ -164,11 +164,13 @@ type CityGlobeProps = {
 export function CityGlobe({ className }: CityGlobeProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const pixelRatio = BASE_CONFIG.devicePixelRatio
 
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null)
   const globeRef = React.useRef<CobeInstance | null>(null)
   const phiRef = React.useRef(0)
   const widthRef = React.useRef(0)
+  const lastRenderTimeRef = React.useRef(0)
 
   React.useEffect(() => {
     const canvas = canvasRef.current
@@ -181,15 +183,23 @@ export function CityGlobe({ className }: CityGlobeProps) {
     }
 
     const onRender = (state: CobeRenderState) => {
-      phiRef.current += 0.005
+      const now = performance.now()
+      if (lastRenderTimeRef.current === 0) {
+        lastRenderTimeRef.current = now
+      }
+      const deltaSeconds = Math.min((now - lastRenderTimeRef.current) / 1000, 0.05)
+      lastRenderTimeRef.current = now
+
+      phiRef.current += 0.3 * deltaSeconds
       state.phi = phiRef.current
       state.theta = 0.3
-      state.width = widthRef.current * 2
-      state.height = widthRef.current * 2
+      state.width = widthRef.current * pixelRatio
+      state.height = widthRef.current * pixelRatio
     }
 
     window.addEventListener("resize", onResize)
     onResize()
+    lastRenderTimeRef.current = 0
 
     loadCobeFactory()
       .then((createGlobe) => {
@@ -197,8 +207,8 @@ export function CityGlobe({ className }: CityGlobeProps) {
 
         globeRef.current = createGlobe(canvas, {
           ...BASE_CONFIG,
-          width: widthRef.current * 2,
-          height: widthRef.current * 2,
+          width: widthRef.current * pixelRatio,
+          height: widthRef.current * pixelRatio,
           onRender,
           dark: isDark ? 1 : 0,
           mapBrightness: isDark ? 0.75 : 1.2,
@@ -219,7 +229,7 @@ export function CityGlobe({ className }: CityGlobeProps) {
       globeRef.current = null
       window.removeEventListener("resize", onResize)
     }
-  }, [isDark])
+  }, [isDark, pixelRatio])
 
   return (
     <div

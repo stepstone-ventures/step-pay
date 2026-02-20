@@ -178,7 +178,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <Label className="text-muted-foreground">Annual Projected Sales Volume</Label>
-                <p className="mt-1 font-medium">GHS {Number(formData.annualSalesVolume).toLocaleString()}</p>
+                <p className="mt-1 font-medium">{Number(formData.annualSalesVolume).toLocaleString()}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Industry</Label>
@@ -292,7 +292,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="annualSalesVolume">Annual Projected Sales Volume (GHS) *</Label>
+                <Label htmlFor="annualSalesVolume">Annual Projected Sales Volume (local currency) *</Label>
                 <Input
                   id="annualSalesVolume"
                   type="number"

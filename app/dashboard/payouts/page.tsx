@@ -15,8 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Filter, X, ExternalLink } from "lucide-react"
-import Link from "next/link"
+import { TrendingUp, Filter, X } from "lucide-react"
 
 interface Payout {
   id: string
@@ -80,10 +79,6 @@ export default function PayoutsPage() {
 
     return filtered
   }, [payouts, status, startDate, endDate])
-
-  const pendingPayouts = useMemo(() => {
-    return payouts.filter((p) => p.status === "Pending")
-  }, [payouts])
 
   const handleReset = () => {
     setStatus("Show All")
@@ -196,112 +191,53 @@ export default function PayoutsPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2">
-          {/* Payouts Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>All Payouts ({filteredPayouts.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {filteredPayouts.length === 0 ? (
-                <div className="text-center py-12">
-                  <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Payouts yet</h3>
-                  <p className="text-muted-foreground">
-                    We haven't paid any money to this account. This is where you will be able to see your scheduled payouts and the transactions you were paid for
-                  </p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>Payout ID</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Transactions</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPayouts.map((payout, index) => (
-                      <TableRow key={payout.id}>
-                        <TableCell className="text-muted-foreground">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium">{payout.id}</TableCell>
-                        <TableCell className="font-medium">
-                          {formatCurrency(payout.amount)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(payout.status)}</TableCell>
-                        <TableCell>{payout.transactions}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatDate(payout.date)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Panel - Pending Payouts */}
-        <div className="lg:col-span-1">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Pending Payouts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingPayouts.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    There are no pending payouts for your business
-                  </p>
-                  <Link
-                    href="#"
-                    className="text-sm text-primary hover:underline inline-flex items-center"
-                  >
-                    Learn More
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingPayouts.map((payout) => (
-                    <div
-                      key={payout.id}
-                      className="p-4 border rounded-lg space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{payout.id}</span>
-                        <Badge variant="secondary">Pending</Badge>
-                      </div>
-                      <div className="text-lg font-semibold">
-                        {formatCurrency(payout.amount)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {payout.transactions} transactions
-                      </div>
-                    </div>
-                  ))}
-                  <Link
-                    href="#"
-                    className="text-sm text-primary hover:underline inline-flex items-center"
-                  >
-                    Learn More
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Pending Transactions ({filteredPayouts.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredPayouts.length === 0 ? (
+            <div className="text-center py-12">
+              <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No pending transactions yet</h3>
+              <p className="text-muted-foreground">
+                This is where pending transaction payouts and their processing status will appear.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>Payout ID</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Transactions</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPayouts.map((payout, index) => (
+                  <TableRow key={payout.id}>
+                    <TableCell className="text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="font-medium">{payout.id}</TableCell>
+                    <TableCell className="font-medium">
+                      {formatCurrency(payout.amount)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(payout.status)}</TableCell>
+                    <TableCell>{payout.transactions}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(payout.date)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
-

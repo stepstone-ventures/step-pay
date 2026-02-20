@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,13 +8,83 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, ArrowRight, Edit, CheckCircle2, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { ComplianceAccessGuard } from "@/components/compliance/access-guard"
+import {
+  NORMALIZED_FALLBACK_PHONE_CODES,
+  normalizePhoneCodeOptions,
+  toCountryOptions,
+  type PhoneCodeOption,
+  type RawPhoneCodeOption,
+} from "@/lib/phone-code-options"
+
+type AddressFormat = {
+  regionLabel: string
+  regionPlaceholder: string
+  localityLabel: string
+  localityPlaceholder: string
+  postalLabel: string
+  postalPlaceholder: string
+}
+
+const DEFAULT_ADDRESS_FORMAT: AddressFormat = {
+  regionLabel: "State / Region / Province",
+  regionPlaceholder: "Enter state, region, or province",
+  localityLabel: "City / District / Locality",
+  localityPlaceholder: "Enter city, district, or locality",
+  postalLabel: "Postal / ZIP Code",
+  postalPlaceholder: "Enter postal or ZIP code",
+}
+
+const COUNTRY_ADDRESS_FORMATS: Record<string, AddressFormat> = {
+  "United States of America": {
+    regionLabel: "State",
+    regionPlaceholder: "California",
+    localityLabel: "City",
+    localityPlaceholder: "San Francisco",
+    postalLabel: "ZIP Code",
+    postalPlaceholder: "94105",
+  },
+  "United Kingdom": {
+    regionLabel: "County / Region",
+    regionPlaceholder: "Greater London",
+    localityLabel: "Town / City",
+    localityPlaceholder: "London",
+    postalLabel: "Postcode",
+    postalPlaceholder: "EC1A 1BB",
+  },
+  Ghana: {
+    regionLabel: "Region",
+    regionPlaceholder: "Greater Accra",
+    localityLabel: "District / Locality",
+    localityPlaceholder: "Accra Metropolitan",
+    postalLabel: "Postcode",
+    postalPlaceholder: "GA-184-4325",
+  },
+  Nigeria: {
+    regionLabel: "State",
+    regionPlaceholder: "Lagos",
+    localityLabel: "Local Government Area / City",
+    localityPlaceholder: "Ikeja",
+    postalLabel: "Postcode",
+    postalPlaceholder: "100271",
+  },
+  Kenya: {
+    regionLabel: "County",
+    regionPlaceholder: "Nairobi County",
+    localityLabel: "Town / City",
+    localityPlaceholder: "Nairobi",
+    postalLabel: "Postal Code",
+    postalPlaceholder: "00100",
+  },
+}
 
 export default function ContactPage() {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<"form" | "review">("form")
+  const [phoneCodeOptions, setPhoneCodeOptions] = useState<PhoneCodeOption[]>(NORMALIZED_FALLBACK_PHONE_CODES)
   const [useGeneralEmail, setUseGeneralEmail] = useState(false)
   const [formData, setFormData] = useState({
     generalEmail: "",
@@ -33,6 +103,63 @@ export default function ContactPage() {
     buildingOrComplex: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const countryOptions = useMemo(() => toCountryOptions(phoneCodeOptions), [phoneCodeOptions])
+
+  const countrySelectOptions = useMemo(() => {
+    if (!formData.country) return countryOptions
+    if (countryOptions.some((option) => option.value === formData.country)) return countryOptions
+    return [{ value: formData.country, label: formData.country, flag: "🏳️" }, ...countryOptions]
+  }, [countryOptions, formData.country])
+
+  const addressFormat = useMemo(
+    () => COUNTRY_ADDRESS_FORMATS[formData.country] ?? DEFAULT_ADDRESS_FORMAT,
+    [formData.country]
+  )
+
+  useEffect(() => {
+    let active = true
+
+    const loadPhoneCodes = async () => {
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,idd,flag")
+        if (!response.ok) return
+        const countries = await response.json()
+        const fetchedOptions: RawPhoneCodeOption[] = []
+
+        for (const country of countries) {
+          const root = country?.idd?.root
+          const suffixes: string[] = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : []
+          const name = country?.name?.common
+          const flag = country?.flag ?? "🏳️"
+          if (!root || !name || suffixes.length === 0) continue
+
+          const dialCodes = suffixes
+            .map((suffix) => `${root}${suffix}`.replace(/[^\d+]/g, ""))
+            .filter((dialCode) => /^\+\d{1,3}$/.test(dialCode))
+
+          for (const dialCode of dialCodes) {
+            fetchedOptions.push({
+              dialCode,
+              label: `${flag} ${name} (${dialCode})`,
+            })
+          }
+        }
+
+        const normalized = normalizePhoneCodeOptions(fetchedOptions)
+        if (active && normalized.length > 0) {
+          setPhoneCodeOptions(normalized)
+        }
+      } catch {
+        // Keep fallback options on network failure.
+      }
+    }
+
+    void loadPhoneCodes()
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     // Load signup data (simulated - in real app, get from auth context)
@@ -139,7 +266,7 @@ export default function ContactPage() {
     }
 
     if (!formData.stateOrRegion) {
-      newErrors.stateOrRegion = "State or Region is required"
+      newErrors.stateOrRegion = `${addressFormat.regionLabel} is required`
     }
 
     if (!formData.streetAddress) {
@@ -147,11 +274,11 @@ export default function ContactPage() {
     }
 
     if (!formData.gpsAddress) {
-      newErrors.gpsAddress = "GPS address is required"
+      newErrors.gpsAddress = `${addressFormat.localityLabel} is required`
     }
 
     if (!formData.postcode) {
-      newErrors.postcode = "Postcode is required"
+      newErrors.postcode = `${addressFormat.postalLabel} is required`
     }
 
     setErrors(newErrors)
@@ -283,7 +410,7 @@ export default function ContactPage() {
                   <p className="mt-1 font-medium">{formData.country}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">State or Region</Label>
+                  <Label className="text-muted-foreground">{addressFormat.regionLabel}</Label>
                   <p className="mt-1 font-medium">{formData.stateOrRegion}</p>
                 </div>
                 <div className="md:col-span-2">
@@ -291,11 +418,11 @@ export default function ContactPage() {
                   <p className="mt-1 font-medium">{formData.streetAddress}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">GPS Address</Label>
+                  <Label className="text-muted-foreground">{addressFormat.localityLabel}</Label>
                   <p className="mt-1 font-medium">{formData.gpsAddress}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Postcode</Label>
+                  <Label className="text-muted-foreground">{addressFormat.postalLabel}</Label>
                   <p className="mt-1 font-medium">{formData.postcode}</p>
                 </div>
                 {formData.buildingOrComplex && (
@@ -426,7 +553,7 @@ export default function ContactPage() {
               <Input
                 id="phoneNumber"
                 type="tel"
-                placeholder="+233 24 123 4567"
+                placeholder="+1 555 123 4567"
                 value={formData.phoneNumber}
                 onChange={(e) => handleChange("phoneNumber", e.target.value)}
                 className={errors.phoneNumber ? "border-destructive" : ""}
@@ -493,24 +620,28 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="country">Country *</Label>
-                  <Input
-                    id="country"
-                    type="text"
-                    placeholder="Ghana"
-                    value={formData.country}
-                    onChange={(e) => handleChange("country", e.target.value)}
-                    className={errors.country ? "border-destructive" : ""}
-                  />
+                  <Select value={formData.country} onValueChange={(value) => handleChange("country", value)}>
+                    <SelectTrigger id="country" className={errors.country ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countrySelectOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.country && (
                     <p className="text-sm text-destructive">{errors.country}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="stateOrRegion">State or Region *</Label>
+                  <Label htmlFor="stateOrRegion">{addressFormat.regionLabel} *</Label>
                   <Input
                     id="stateOrRegion"
                     type="text"
-                    placeholder="Greater Accra"
+                    placeholder={addressFormat.regionPlaceholder}
                     value={formData.stateOrRegion}
                     onChange={(e) => handleChange("stateOrRegion", e.target.value)}
                     className={errors.stateOrRegion ? "border-destructive" : ""}
@@ -534,11 +665,11 @@ export default function ContactPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gpsAddress">GPS Address *</Label>
+                  <Label htmlFor="gpsAddress">{addressFormat.localityLabel} *</Label>
                   <Input
                     id="gpsAddress"
                     type="text"
-                    placeholder="GC-123-4567"
+                    placeholder={addressFormat.localityPlaceholder}
                     value={formData.gpsAddress}
                     onChange={(e) => handleChange("gpsAddress", e.target.value)}
                     className={errors.gpsAddress ? "border-destructive" : ""}
@@ -548,11 +679,11 @@ export default function ContactPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="postcode">Postcode *</Label>
+                  <Label htmlFor="postcode">{addressFormat.postalLabel} *</Label>
                   <Input
                     id="postcode"
                     type="text"
-                    placeholder="GA123-4567"
+                    placeholder={addressFormat.postalPlaceholder}
                     value={formData.postcode}
                     onChange={(e) => handleChange("postcode", e.target.value)}
                     className={errors.postcode ? "border-destructive" : ""}
