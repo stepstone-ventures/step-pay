@@ -373,10 +373,6 @@ export default function SettingsPage() {
                   Manage your payout accounts and subaccounts
                 </CardDescription>
               </div>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -694,10 +690,6 @@ export default function SettingsPage() {
                   Manage team members and their permissions
                 </CardDescription>
               </div>
-              <Button onClick={() => setShowAddTeamMember(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Team Member
-              </Button>
             </div>
           </CardHeader>
           <CardContent>

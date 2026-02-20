@@ -222,7 +222,12 @@ export function CityGlobe({ className }: CityGlobeProps) {
   }, [isDark])
 
   return (
-    <div className={cn("relative mx-auto aspect-square w-full max-w-[760px]", className)}>
+    <div
+      className={cn(
+        "relative mx-auto aspect-square w-full max-w-[760px] pointer-events-none touch-none select-none",
+        className
+      )}
+    >
       <canvas
         ref={canvasRef}
         className="pointer-events-none size-full opacity-0 transition-opacity duration-700 ease-out [contain:layout_paint_size]"

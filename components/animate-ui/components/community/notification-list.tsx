@@ -126,7 +126,7 @@ function NotificationList({ className }: NotificationListProps) {
     [allNotifications, readIds]
   )
 
-  const previewNotifications = unreadNotifications.slice(0, 3)
+  const previewNotifications = unreadNotifications.slice(0, 2)
   const animationState = isMobileOrTablet && expandedByTap ? "expanded" : "collapsed"
 
   const toggleReadState = (notificationId: string, checked: boolean) => {
