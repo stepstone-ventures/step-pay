@@ -1,8 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatedCard } from "@/components/ui/animated-card"
 import { BorderBeam } from "@/components/ui/border-beam"
@@ -15,6 +16,7 @@ import { ShareButton } from "@/components/animate-ui/components/community/share-
 import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/tilt"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { FluidCursor } from "@/components/ui/fluid-cursor"
+import { IPhone15ProMockup } from "@/components/ui/iphone-15-pro-mockup"
 import {
   NfcFeatureIcon,
   PhoneCallFeatureIcon,
@@ -73,8 +75,45 @@ const MONO_LINK_COLUMNS = [
 ]
 
 const SPLINE_SCENE_URL = "https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+const STEP_CARDS = [
+  {
+    id: 1,
+    title: "Verify Business",
+    description: "Submit basic business details and documents. Get approved in minutes and unlock full access.",
+    imageSrc: "/f1.png",
+    imageAlt: "StepPay verification",
+  },
+  {
+    id: 2,
+    title: "Set-up Financial Account",
+    description: "Securely link your bank account to receive payouts quickly and automatically.",
+    imageSrc: "/f2.png",
+    imageAlt: "StepPay financial setup",
+  },
+  {
+    id: 3,
+    title: "Create Storefront",
+    description: "Build your branded payment page or online store in just a few clicks with 0 coding required.",
+    imageSrc: "/f3.png",
+    imageAlt: "StepPay shop front",
+  },
+  {
+    id: 4,
+    title: "Receive and Track Payments",
+    description: "Start accepting payments instantly and monitor every transaction in one clear dashboard.",
+    imageSrc: "/f4.png",
+    imageAlt: "StepPay payments dashboard",
+  },
+]
 
 export default function Home() {
+  const [activeStepIndex, setActiveStepIndex] = useState(0)
+
+  const goToStep = (index: number) => {
+    const normalized = (index + STEP_CARDS.length) % STEP_CARDS.length
+    setActiveStepIndex(normalized)
+  }
+
   return (
     <div className="min-h-screen bg-background relative">
       <FluidCursor />
@@ -85,11 +124,11 @@ export default function Home() {
           <Link href="/" className="flex items-center space-x-1.5">
             <div className="relative h-10 w-14">
               <Image
-                src="/steppay-logo.png"
+                src="/steppay-logo-liquid.png?v=3"
                 alt="StepPay logo"
                 fill
                 sizes="64px"
-                className="object-contain dark:invert"
+                className="object-contain"
                 priority
               />
             </div>
@@ -171,111 +210,68 @@ export default function Home() {
             <span className="fx-shield">4 Simple Steps</span>
           </h2>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          <Tilt className="w-full" maxTilt={9} perspective={900}>
-            <TiltContent>
-              <AnimatedCard delay={0.1} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
-                <BorderBeam duration={15} />
-                <CardContent className="pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
-                    <span className="text-2xl font-bold text-primary">1</span>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Verify Business</h3>
-                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
-                    Submit basic business details and documents. Get approved in minutes and unlock full access.
-                  </p>
-                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
-                    <Image
-                      src="/f1.jpg"
-                      alt="StepPay verification"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      quality={82}
-                      className="object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </AnimatedCard>
-            </TiltContent>
-          </Tilt>
-          <Tilt className="w-full" maxTilt={9} perspective={900}>
-            <TiltContent>
-              <AnimatedCard delay={0.2} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
-                <BorderBeam duration={15} />
-                <CardContent className="pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
-                    <span className="text-2xl font-bold text-primary">2</span>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Set-up Financial Account</h3>
-                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
-                    Securely link your bank account to receive payouts quickly and automatically.
-                  </p>
-                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
-                    <Image
-                      src="/f2.jpg"
-                      alt="StepPay financial setup"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      quality={82}
-                      className="object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </AnimatedCard>
-            </TiltContent>
-          </Tilt>
-          <Tilt className="w-full" maxTilt={9} perspective={900}>
-            <TiltContent>
-              <AnimatedCard delay={0.3} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
-                <BorderBeam duration={15} />
-                <CardContent className="pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
-                    <span className="text-2xl font-bold text-primary">3</span>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Create Shop-Front</h3>
-                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
-                    Build your branded payment page or online store in just a few clicks with 0 coding required.
-                  </p>
-                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
-                    <Image
-                      src="/f3.jpg"
-                      alt="StepPay shop front"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      quality={82}
-                      className="object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </AnimatedCard>
-            </TiltContent>
-          </Tilt>
-          <Tilt className="w-full" maxTilt={9} perspective={900}>
-            <TiltContent>
-              <AnimatedCard delay={0.4} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
-                <BorderBeam duration={15} />
-                <CardContent className="pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
-                    <span className="text-2xl font-bold text-primary">4</span>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">Receive and Track Payments</h3>
-                  <p className="text-muted-foreground leading-relaxed text-center text-sm">
-                    Start accepting payments instantly and monitor every transaction in one clear dashboard.
-                  </p>
-                  <div className="relative mt-4 w-full aspect-square sm:aspect-auto sm:h-56 overflow-hidden rounded-xl border border-border/50">
-                    <Image
-                      src="/f4.jpg"
-                      alt="StepPay payments dashboard"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      quality={82}
-                      className="object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </AnimatedCard>
-            </TiltContent>
-          </Tilt>
+        <div className="mx-auto w-full max-w-xl">
+          <div className="relative overflow-hidden rounded-2xl">
+            <div
+              className="flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${activeStepIndex * 100}%)` }}
+            >
+              {STEP_CARDS.map((step) => (
+                <div key={step.id} className="w-full shrink-0 px-1">
+                  <Tilt className="w-full" maxTilt={9} perspective={900}>
+                    <TiltContent>
+                      <AnimatedCard delay={0.1} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
+                        <BorderBeam duration={15} />
+                        <CardContent className="pt-6">
+                          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                            <span className="text-2xl font-bold text-primary">{step.id}</span>
+                          </div>
+                          <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">{step.title}</h3>
+                          <p className="text-muted-foreground leading-relaxed text-center text-sm">{step.description}</p>
+                          <div className="relative mt-4 flex h-[26rem] sm:h-[31.2rem] w-full items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+                            <IPhone15ProMockup src={step.imageSrc} className="h-[99%] w-auto max-w-[312px]" />
+                          </div>
+                        </CardContent>
+                      </AnimatedCard>
+                    </TiltContent>
+                  </Tilt>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => goToStep(activeStepIndex - 1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground transition-colors hover:bg-muted"
+              aria-label="Previous step"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              {STEP_CARDS.map((step, index) => {
+                const isActive = index === activeStepIndex
+                return (
+                  <button
+                    key={step.id}
+                    type="button"
+                    onClick={() => goToStep(index)}
+                    className={isActive ? "h-2 w-7 rounded-full bg-primary" : "h-2 w-2 rounded-full bg-muted-foreground/40"}
+                    aria-label={`Go to step ${step.id}`}
+                  />
+                )
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(activeStepIndex + 1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground transition-colors hover:bg-muted"
+              aria-label="Next step"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -300,7 +296,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Online Payments</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Take payments directly from your website or our shop-front via card, mobile money and digital banking methods.
+                Take payments directly from your website or our storefront via card, crypto wallet, mobile money and digital bank transfer.
               </p>
             </CardContent>
           </AnimatedCard>
@@ -312,7 +308,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Mobile Money</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Receive and make transactions across all networks via mobile money in West Africa.
+                Receive and make transactions across all networks via mobile money in eligible African countries.
               </p>
             </CardContent>
           </AnimatedCard>
@@ -324,7 +320,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Enterprise Planning</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Unify finance, operations, inventory, taxes and reporting into one intelligent platform powering scalable, secure, real time payment ecosystems.
+                Unify finance, operations, inventory, taxes and budgeting into one intelligent platform for your business.
               </p>
             </CardContent>
           </AnimatedCard>
@@ -336,7 +332,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2 tracking-tight">Bulk Payments</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Send money to multiple mobile wallets or bank accounts at once, locally or internationally.
+                Receive your payments from all clients or customers at the same time across every international border.
               </p>
             </CardContent>
           </AnimatedCard>

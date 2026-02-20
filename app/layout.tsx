@@ -13,6 +13,11 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "StepPay Dashboard",
   description: "StepPay Payment Dashboard",
+  icons: {
+    icon: "/steppay-logo-liquid.png?v=3",
+    shortcut: "/steppay-logo-liquid.png?v=3",
+    apple: "/steppay-logo-liquid.png?v=3",
+  },
 }
 
 export default function RootLayout({

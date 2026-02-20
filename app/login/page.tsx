@@ -292,11 +292,11 @@ function LoginPageContent() {
           <Link href="/" className="flex items-center space-x-1.5">
             <div className="relative h-10 w-14">
               <Image
-                src="/steppay-logo.png"
+                src="/steppay-logo-liquid.png?v=3"
                 alt="StepPay logo"
                 fill
                 sizes="64px"
-                className="object-contain dark:invert"
+                className="object-contain"
                 priority
               />
             </div>
@@ -343,13 +343,13 @@ function LoginPageContent() {
       <main className="relative z-10 flex min-h-[calc(100vh-81px)] items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
-            <div className="fx-shield-block relative mx-auto mb-5 h-16 w-28">
+            <div className="relative mx-auto mb-5 h-16 aspect-[1597/1172]">
               <Image
-                src="/steppay-logo.png"
+                src="/steppay-logo-liquid.png?v=3"
                 alt="StepPay logo"
                 fill
-                sizes="112px"
-                className="object-contain dark:invert"
+                sizes="88px"
+                className="object-contain"
                 priority
               />
             </div>

@@ -175,9 +175,9 @@ export function Sidebar({
           <Link href="/dashboard" onClick={() => navigateFromSidebar("/dashboard")} className="flex items-center space-x-1.5">
             <div className="relative h-10 w-14">
               <img
-                src="/steppay-logo.png"
+                src="/steppay-logo-liquid.png?v=3"
                 alt="StepPay logo"
-                className="h-full w-full object-contain dark:invert"
+                className="h-full w-full object-contain"
               />
             </div>
             <span className="text-lg font-semibold tracking-tight">StepPay</span>
