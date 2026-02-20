@@ -1,8 +1,5 @@
-"use client"
+\"use client\"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { complianceSteps, getNextIncompleteComplianceStep } from "@/lib/compliance-utils"
 import type { ComplianceStep } from "@/lib/compliance-utils"
 
 interface ComplianceAccessGuardProps {
@@ -10,18 +7,9 @@ interface ComplianceAccessGuardProps {
   children: React.ReactNode
 }
 
-export function ComplianceAccessGuard({ currentStep, children }: ComplianceAccessGuardProps) {
-  const router = useRouter()
-
-  useEffect(() => {
-    // Find the next incomplete step
-    const nextStep = getNextIncompleteComplianceStep(complianceSteps, currentStep)
-
-    // If the current step is not allowed (i.e., there's an earlier incomplete step), redirect
-    if (nextStep && nextStep !== currentStep) {
-      router.push(`/dashboard/compliance/${nextStep}`)
-    }
-  }, [currentStep, router])
-
+// Currently this guard only exists to preserve a consistent interface around
+// compliance pages. All steps are always accessible and fully editable, both
+// before and after completion.
+export function ComplianceAccessGuard({ children }: ComplianceAccessGuardProps) {
   return <>{children}</>
 }
