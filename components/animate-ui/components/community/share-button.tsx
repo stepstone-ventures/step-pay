@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Ghost, Instagram, Share2 } from "lucide-react";
+import { Instagram, Share2 } from "lucide-react";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { cn } from "@/lib/utils";
 
-type Platform = "instagram" | "x" | "snapchat";
+type Platform = "instagram" | "x" | "tiktok";
 
 type ShareButtonProps = React.ComponentProps<"div"> & {
   onIconClick?: (platform: Platform) => void;
@@ -27,10 +27,19 @@ function XBrandIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function TikTokBrandIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M14 4v8.2a4.2 4.2 0 1 1-3-4V12" />
+      <path d="M14 6c.9 1.4 2.3 2.4 4 2.8" />
+    </svg>
+  );
+}
+
 const SHARE_ITEMS: ShareItem[] = [
   { id: "instagram", href: "https://www.instagram.com", icon: Instagram },
   { id: "x", href: "https://x.com", icon: XBrandIcon },
-  { id: "snapchat", href: "https://www.snapchat.com", icon: Ghost },
+  { id: "tiktok", href: "https://www.tiktok.com", icon: TikTokBrandIcon },
 ];
 
 export function ShareButton({ className, onIconClick, ...props }: ShareButtonProps) {

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Store, Plus, Filter, X } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface Storefront {
   id: string
@@ -33,7 +34,7 @@ const mockStorefronts: Storefront[] = []
 const statusOptions = ["Active", "Inactive"]
 const ordersOptions = ["Show All", "Enter Amount"]
 const revenueOptions = ["Show All", "Enter Amount"]
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 
 export default function StorefrontsPage() {
   const [storefronts] = useState<Storefront[]>(mockStorefronts)

@@ -25,21 +25,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Highlight } from "@/components/animate-ui/primitives/effects/highlight"
 import {
-  Settings as SettingsIcon,
+  AnimateTabs,
+  AnimateTabsContent,
+  AnimateTabsList,
+  AnimateTabsTrigger,
+} from "@/components/animate-ui/components/animate/tabs"
+import {
   Users,
-  Key,
   Plus,
   Edit,
   Trash2,
   Save,
-  X,
   Upload,
 } from "lucide-react"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
-const currencies = ["USD", "EUR", "JPY", "GBP", "CNY", "GHS", "NGN", "ZAR"]
+const currencies = APP_CURRENCIES
 const paymentMethods = ["Card", "Bank Transfer", "Mobile Money"]
 const timezones = [
   "Africa/Accra (GMT+0)",
@@ -222,9 +225,8 @@ export default function SettingsPage() {
   }
 
   const tabs = [
-    { id: "preferences", label: "Preferences", icon: SettingsIcon },
-    { id: "team", label: "Team", icon: Users },
-    { id: "api-keys", label: "API Keys & Webhooks", icon: Key },
+    { id: "preferences", label: "Preferences" },
+    { id: "api-keys", label: "API Keys & Webhooks" },
   ]
 
   return (
@@ -240,35 +242,18 @@ export default function SettingsPage() {
         </div>
       ) : null}
 
-      {/* Tabs */}
-      <div className="border-b">
-        <Highlight
-          value={activeTab}
-          onValueChange={setActiveTab}
-          mode="parent"
-          containerClassName="flex flex-wrap gap-2 pb-4"
-          className="rounded-lg bg-accent inset-0 border border-border/60"
-          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-        >
+      <AnimateTabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <AnimateTabsList className="grid-cols-2 w-full md:w-fit md:min-w-[420px]">
           {tabs.map((tab) => {
-            const Icon = tab.icon
             return (
-              <button
-                key={tab.id}
-                data-value={tab.id}
-                className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm transition-colors text-muted-foreground data-[active=true]:text-foreground data-[active=true]:font-medium"
-              >
-                <Icon className="h-4 w-4" />
-                <span className="font-medium">{tab.label}</span>
-              </button>
+              <AnimateTabsTrigger key={tab.id} value={tab.id} className="text-xs sm:text-sm">
+                <span>{tab.label}</span>
+              </AnimateTabsTrigger>
             )
           })}
-        </Highlight>
-      </div>
+        </AnimateTabsList>
 
-      {/* Preferences Tab */}
-      {activeTab === "preferences" && (
-        <div className="space-y-6">
+        <AnimateTabsContent value="preferences" className="space-y-6">
           {/* Payments */}
           <Card>
             <CardHeader>
@@ -545,95 +530,89 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Teams</CardTitle>
+                  <CardDescription>
+                    Manage team members and their permissions
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {teamMembers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Team Members</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Add team members to collaborate on your account
+                  </p>
+                  <Button onClick={() => setShowAddTeamMember(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Team Member
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Permissions</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {teamMembers.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">{member.name}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{member.role}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {member.permissions.length > 0
+                            ? member.permissions.join(", ")
+                            : "No permissions"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditTeamMember(member)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveTeamMember(member.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="flex justify-end">
             <Button onClick={handleSavePreferences}>
               <Save className="mr-2 h-4 w-4" />
               Save All Preferences
             </Button>
           </div>
-        </div>
-      )}
+        </AnimateTabsContent>
 
-      {/* Team Tab */}
-      {activeTab === "team" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Team Members</CardTitle>
-                <CardDescription>
-                  Manage team members and their permissions
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {teamMembers.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Team Members</h3>
-                <p className="text-muted-foreground mb-6">
-                  Add team members to collaborate on your account
-                </p>
-                <Button onClick={() => setShowAddTeamMember(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Team Member
-                </Button>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teamMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{member.role}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {member.permissions.length > 0
-                          ? member.permissions.join(", ")
-                          : "No permissions"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditTeamMember(member)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveTeamMember(member.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* API Keys & Webhooks Tab */}
-      {activeTab === "api-keys" && (
-        <div className="space-y-6">
+        <AnimateTabsContent value="api-keys" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Test API Keys</CardTitle>
@@ -742,8 +721,8 @@ export default function SettingsPage() {
               Save Changes
             </Button>
           </div>
-        </div>
-      )}
+        </AnimateTabsContent>
+      </AnimateTabs>
 
       {/* Add Team Member Dialog */}
       <Dialog open={showAddTeamMember} onOpenChange={setShowAddTeamMember}>

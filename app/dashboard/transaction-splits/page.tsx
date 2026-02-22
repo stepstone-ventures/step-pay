@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Split, Filter, X, Search, Plus } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface TransactionSplit {
   id: string
@@ -46,7 +47,7 @@ const statusOptions = ["All", "Active", "Disabled"]
 const splitTypeOptions = ["All", "Flat", "Percentage"]
 const categoryOptions = ["All", "Static", "Dynamic"]
 
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 const splitTypes = ["Percentage Split", "Flat Split"]
 
 export default function TransactionSplitsPage() {
@@ -432,4 +433,3 @@ export default function TransactionSplitsPage() {
     </div>
   )
 }
-

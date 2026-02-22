@@ -19,6 +19,7 @@ import { RadialIntro } from "@/components/animate-ui/components/community/radial
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { getAuthRedirectOrigin } from "@/lib/auth/get-auth-redirect-origin"
+import { getCurrencyForCountry } from "@/lib/currency-options"
 import { ChevronDown, Eye, EyeOff } from "lucide-react"
 
 const RADIAL_ITEMS = [
@@ -506,6 +507,7 @@ export default function SignupPage() {
     try {
       const supabase = getSupabaseClient()
       const fullPhoneNumber = `${formData.phoneCode}${formData.phone}`.replace(/[^\d+]/g, "")
+      const preferredCurrency = getCurrencyForCountry(formData.country.trim())
 
       const { data: { user }, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -516,6 +518,7 @@ export default function SignupPage() {
             business_name: formData.businessName.trim(),
             phone_number: fullPhoneNumber,
             country: formData.country.trim(),
+            ...(preferredCurrency ? { preferred_currency: preferredCurrency } : {}),
           },
         },
       })

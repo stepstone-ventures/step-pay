@@ -3,14 +3,14 @@
 import { useState, type ComponentType, type ReactNode, type SVGProps } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
-import { ChevronDown, Ghost, Instagram, Menu, X } from "lucide-react"
+import { ChevronDown, Instagram, X } from "lucide-react"
+import { MenuIcon } from "@/components/animate-ui/icons/menu"
 import { LiquidButton } from "@/components/ui/liquid-button"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Switch } from "@/components/ui/switch"
-import { useTheme } from "@/components/theme-provider"
+import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { cn } from "@/lib/utils"
 
-type SharePlatform = "instagram" | "x" | "snapchat"
+type SharePlatform = "instagram" | "x" | "tiktok"
 
 type ShareItem = {
   id: SharePlatform
@@ -36,10 +36,19 @@ function XBrandIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+function TikTokBrandIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M14 4v8.2a4.2 4.2 0 1 1-3-4V12" />
+      <path d="M14 6c.9 1.4 2.3 2.4 4 2.8" />
+    </svg>
+  )
+}
+
 const SHARE_ITEMS: ShareItem[] = [
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com", icon: Instagram },
   { id: "x", label: "X", href: "https://x.com", icon: XBrandIcon },
-  { id: "snapchat", label: "Snapchat", href: "https://www.snapchat.com", icon: Ghost },
+  { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com", icon: TikTokBrandIcon },
 ]
 
 function MenuRow({
@@ -71,7 +80,6 @@ type MobileTopMenuProps = {
 }
 
 export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: MobileTopMenuProps) {
-  const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const [paymentsOpen, setPaymentsOpen] = useState(false)
   const [referOpen, setReferOpen] = useState(false)
@@ -91,7 +99,7 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
             className
           )}
         >
-          <Menu className="h-5 w-5" />
+          <MenuIcon size={20} className="h-5 w-5" />
         </button>
       </SheetTrigger>
       <SheetContent
@@ -106,12 +114,7 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
             <div className="ml-auto flex items-center gap-5">
               <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-2.5 py-2">
                 <span className="text-xs text-muted-foreground">Theme</span>
-                <Switch
-                  aria-label="Toggle dark mode"
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                  className="bg-muted peer-checked:bg-foreground/90 after:bg-background after:border-border transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] after:duration-700 after:ease-[cubic-bezier(0.22,1,0.36,1)]"
-                />
+                <ThemeTogglerButton variant="secondary" size="default" className="border border-border/60" />
               </div>
               <SheetClose asChild>
                 <button

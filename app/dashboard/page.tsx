@@ -1,111 +1,124 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { Check } from "lucide-react"
 import { AnimatedStatCard } from "@/components/dashboard/animated-stat-card"
 import { TransactionsAnalytics } from "@/components/dashboard/transactions-analytics"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { APP_CURRENCIES, getCurrencyForCountry, isAppCurrency, type AppCurrency } from "@/lib/currency-options"
 import type { Transaction } from "@/lib/mock-data"
 
-type CurrencyOption = {
-  id: string
-  country: string
-  flag: string
-  currencyCode: string
+type ExchangeRatesResponse = {
+  base: "USD"
+  date: string
+  rates: Record<AppCurrency, number>
+  stale?: boolean
 }
 
-const DEFAULT_USD_ID = "United States of America::USD"
+function convertCurrencyAmount(
+  amount: number,
+  sourceCurrency: string | undefined,
+  targetCurrency: AppCurrency,
+  rates: Record<AppCurrency, number> | null
+) {
+  if (!Number.isFinite(amount) || !rates) return amount
 
-const FALLBACK_CURRENCY_OPTIONS: CurrencyOption[] = [
-  { id: "United States of America::USD", country: "United States of America", flag: "🇺🇸", currencyCode: "USD" },
-  { id: "United Kingdom::GBP", country: "United Kingdom", flag: "🇬🇧", currencyCode: "GBP" },
-  { id: "European Union::EUR", country: "European Union", flag: "🇪🇺", currencyCode: "EUR" },
-  { id: "Nigeria::NGN", country: "Nigeria", flag: "🇳🇬", currencyCode: "NGN" },
-  { id: "Ghana::GHS", country: "Ghana", flag: "🇬🇭", currencyCode: "GHS" },
-]
+  const normalizedSourceCurrency: AppCurrency = isAppCurrency(sourceCurrency) ? sourceCurrency : "USD"
+  if (normalizedSourceCurrency === targetCurrency) return amount
 
-const normalizeCountryName = (countryName: string) => {
-  if (countryName === "United States") return "United States of America"
-  return countryName
+  const sourceRate = rates[normalizedSourceCurrency]
+  const targetRate = rates[targetCurrency]
+  if (!sourceRate || !targetRate) return amount
+
+  const amountInUsd = amount / sourceRate
+  return amountInUsd * targetRate
 }
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [currencyOptions, setCurrencyOptions] = useState<CurrencyOption[]>(FALLBACK_CURRENCY_OPTIONS)
-  const [selectedCurrencyId, setSelectedCurrencyId] = useState(DEFAULT_USD_ID)
-
-  useEffect(() => {
-    fetch("/api/transactions")
-      .then((res) => res.json())
-      .then((transactionsData) => {
-        setTransactions(Array.isArray(transactionsData) ? transactionsData : [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
+  const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<AppCurrency>("USD")
+  const [exchangeRates, setExchangeRates] = useState<Record<AppCurrency, number> | null>(null)
+  const [exchangeRateDate, setExchangeRateDate] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
+    const supabase = createSupabaseBrowserClient()
 
-    const loadCurrencyOptions = async () => {
-      try {
-        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,flag,currencies")
-        if (!response.ok) return
+    const hydrateDashboard = async () => {
+      const [transactionsResult, userResult, exchangeRatesResult] = await Promise.allSettled([
+        fetch("/api/transactions").then((res) => res.json()),
+        supabase.auth.getUser(),
+        fetch("/api/exchange-rates").then((res) => res.json()),
+      ])
 
-        const countries = await response.json()
-        const byCountry = new Map<string, CurrencyOption>()
+      if (!active) return
 
-        for (const country of countries) {
-          const name =
-            typeof country?.name?.common === "string"
-              ? normalizeCountryName(country.name.common)
-              : ""
-          const flag = typeof country?.flag === "string" ? country.flag : "🏳️"
-          const currencyEntries =
-            country?.currencies && typeof country.currencies === "object"
-              ? Object.keys(country.currencies)
-              : []
-
-          if (!name || currencyEntries.length === 0) continue
-
-          const currencyCode = currencyEntries.sort((a: string, b: string) => a.localeCompare(b))[0]
-          if (!currencyCode) continue
-
-          byCountry.set(name, {
-            id: `${name}::${currencyCode}`,
-            country: name,
-            flag,
-            currencyCode,
-          })
-        }
-
-        const sorted = Array.from(byCountry.values()).sort((a, b) =>
-          a.country.localeCompare(b.country, undefined, { sensitivity: "base" })
-        )
-
-        if (!active || sorted.length === 0) return
-
-        setCurrencyOptions(sorted)
-        const usaOption = sorted.find((option) => option.country === "United States of America")
-        const usdOption = sorted.find((option) => option.currencyCode === "USD")
-        setSelectedCurrencyId((prev) => {
-          if (sorted.some((option) => option.id === prev)) return prev
-          return usaOption?.id ?? usdOption?.id ?? sorted[0]?.id ?? DEFAULT_USD_ID
-        })
-      } catch {
-        // Keep fallback options when API fetch fails.
+      if (transactionsResult.status === "fulfilled" && Array.isArray(transactionsResult.value)) {
+        setTransactions(transactionsResult.value)
+      } else {
+        setTransactions([])
       }
+
+      if (userResult.status === "fulfilled") {
+        const metadata = userResult.value.data.user?.user_metadata ?? {}
+        const preferredCurrency = typeof metadata.preferred_currency === "string" ? metadata.preferred_currency : null
+        const selectedCountry = typeof metadata.country === "string" ? metadata.country : null
+
+        if (isAppCurrency(preferredCurrency)) {
+          setSelectedCurrencyCode(preferredCurrency)
+        } else {
+          const derivedCurrency = getCurrencyForCountry(selectedCountry)
+          if (derivedCurrency) setSelectedCurrencyCode(derivedCurrency)
+        }
+      }
+
+      if (exchangeRatesResult.status === "fulfilled") {
+        const payload = exchangeRatesResult.value as Partial<ExchangeRatesResponse>
+        const rates = payload.rates
+        if (rates && typeof rates === "object") {
+          const normalizedRates = APP_CURRENCIES.reduce<Record<AppCurrency, number>>((acc, currencyCode) => {
+            const rawRate = Number((rates as Record<string, unknown>)[currencyCode])
+            acc[currencyCode] = Number.isFinite(rawRate) && rawRate > 0 ? rawRate : 0
+            return acc
+          }, {} as Record<AppCurrency, number>)
+
+          normalizedRates.USD = 1
+          setExchangeRates(normalizedRates)
+          if (typeof payload.date === "string") setExchangeRateDate(payload.date)
+        }
+      }
+
+      setLoading(false)
     }
 
-    loadCurrencyOptions()
+    hydrateDashboard().catch(() => {
+      if (active) setLoading(false)
+    })
 
     return () => {
       active = false
     }
   }, [])
 
-  const selectedCurrencyOption = currencyOptions.find((option) => option.id === selectedCurrencyId)
-  const selectedCurrencyCode = selectedCurrencyOption?.currencyCode ?? "USD"
+  const convertedTransactions = useMemo(() => {
+    return transactions.map((transaction) => {
+      const originalAmount = Number(transaction.amount) || 0
+      const convertedAmount = convertCurrencyAmount(
+        originalAmount,
+        transaction.currency,
+        selectedCurrencyCode,
+        exchangeRates
+      )
+
+      return {
+        ...transaction,
+        amount: convertedAmount,
+        currency: selectedCurrencyCode,
+      }
+    })
+  }, [exchangeRates, selectedCurrencyCode, transactions])
 
   const formatCurrency = (amount: number) => {
     try {
@@ -121,10 +134,15 @@ export default function DashboardPage() {
     }
   }
 
-  // New user defaults
-  const revenue = 0
-  const paymentIssues = 0
-  const salesPrediction = 0
+  const successfulTransactions = convertedTransactions.filter((transaction) => transaction.status === "successful")
+  const revenue = successfulTransactions.reduce((sum, transaction) => {
+    const amount = Number(transaction.amount) || 0
+    return amount > 0 ? sum + amount : sum
+  }, 0)
+  const paymentIssues = convertedTransactions.filter(
+    (transaction) => transaction.status === "failed" || transaction.status === "pending"
+  ).length
+  const salesPrediction = revenue * 1.15
 
   if (loading) {
     return (
@@ -144,20 +162,25 @@ export default function DashboardPage() {
         <AnimatedStatCard
           title="Revenue"
           value={formatCurrency(revenue)}
-          subtitle="No settled revenue yet."
+          subtitle={
+            exchangeRateDate
+              ? `Settled revenue to date. FX rate date: ${exchangeRateDate}.`
+              : "Settled revenue to date."
+          }
+          icon={<Check className="h-4 w-4 text-white" strokeWidth={3} />}
           action={(
-            <Select value={selectedCurrencyId} onValueChange={setSelectedCurrencyId}>
-              <SelectTrigger className="h-8 w-[220px] border-white/25 bg-black/70 text-xs text-white">
+            <Select value={selectedCurrencyCode} onValueChange={(value) => setSelectedCurrencyCode(value as AppCurrency)}>
+              <SelectTrigger className="h-8 w-[120px] border border-[#E5E7EB] bg-white text-xs text-[#374151] shadow-none dark:border-zinc-800 dark:bg-black dark:text-gray-200">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
-              <SelectContent className="border-white/15 bg-black text-white">
-                {currencyOptions.map((option) => (
+              <SelectContent className="border-[#E5E7EB] bg-white text-[#374151] dark:border-zinc-800 dark:bg-black dark:text-gray-200">
+                {APP_CURRENCIES.map((currencyCode) => (
                   <SelectItem
-                    key={option.id}
-                    value={option.id}
-                    className="focus:bg-white/10 focus:text-white"
+                    key={currencyCode}
+                    value={currencyCode}
+                    className="focus:bg-[#E5E7EB]/60 focus:text-[#374151] dark:focus:bg-zinc-800 dark:focus:text-gray-100"
                   >
-                    {option.flag} {option.country} - {option.currencyCode}
+                    {currencyCode}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -168,22 +191,28 @@ export default function DashboardPage() {
         <AnimatedStatCard
           title="Payment Issues"
           value={paymentIssues.toString()}
-          subtitle="No failed or pending payments."
+          subtitle="Failed or pending transactions."
           tone="negative"
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-white">
+              <path d="M12 6v8" />
+              <circle cx="12" cy="18" r="1.25" fill="currentColor" stroke="none" />
+            </svg>
+          }
           delay={0.06}
         />
 
         <AnimatedStatCard
           title="Sales Predictions"
           value={formatCurrency(salesPrediction)}
-          subtitle="Insufficient history for forecasting."
+          subtitle="Projection based on recent trend."
           tone="positive"
           delay={0.12}
         />
       </div>
 
       <TransactionsAnalytics
-        transactions={transactions}
+        transactions={convertedTransactions}
         currencyCode={selectedCurrencyCode}
         formatCurrency={formatCurrency}
       />

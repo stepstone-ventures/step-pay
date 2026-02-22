@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Package, Plus, Filter, X, Grid3x3, List, Upload, X as XIcon } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface Product {
   id: string
@@ -40,7 +41,7 @@ const inStockOptions = ["Show All", "Unlimited", "Limited"]
 const quantitySoldOptions = ["Show All", "Enter Amount"]
 const priceOptions = ["Show All", "Enter Amount"]
 const quantityOptions = ["Limited", "Unlimited"]
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 
 export default function ProductsPage() {
   const [products] = useState<Product[]>(mockProducts)

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { MultiStepLoader } from "@/components/ui/multi-step-loader"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 type MerchantRecipient = {
   user_id: string
@@ -514,14 +515,11 @@ export default function SendPaymentPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="JPY">JPY</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
-                    <SelectItem value="CNY">CNY</SelectItem>
-                    <SelectItem value="GHS">GHS</SelectItem>
-                    <SelectItem value="NGN">NGN</SelectItem>
-                    <SelectItem value="ZAR">ZAR</SelectItem>
+                    {APP_CURRENCIES.map((currencyCode) => (
+                      <SelectItem key={currencyCode} value={currencyCode}>
+                        {currencyCode}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

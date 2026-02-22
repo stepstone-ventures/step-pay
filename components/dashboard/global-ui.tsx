@@ -4,7 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentType, type SVGProps } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, ChevronDown, Ghost, Instagram, Menu } from "lucide-react"
+import { Check, ChevronDown, Instagram } from "lucide-react"
+import { MenuIcon } from "@/components/animate-ui/icons/menu"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -48,7 +49,7 @@ const pageTitles: Record<string, string> = {
 }
 
 type SharePlatform = {
-  id: "instagram" | "x" | "snapchat"
+  id: "instagram" | "x" | "tiktok"
   label: string
   href: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
@@ -63,10 +64,19 @@ function XBrandIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+function TikTokBrandIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M14 4v8.2a4.2 4.2 0 1 1-3-4V12" />
+      <path d="M14 6c.9 1.4 2.3 2.4 4 2.8" />
+    </svg>
+  )
+}
+
 const SHARE_ITEMS: SharePlatform[] = [
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com", icon: Instagram },
   { id: "x", label: "X", href: "https://x.com", icon: XBrandIcon },
-  { id: "snapchat", label: "Snapchat", href: "https://www.snapchat.com", icon: Ghost },
+  { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com", icon: TikTokBrandIcon },
 ]
 
 const submenuTransition = { type: "spring", stiffness: 120, damping: 16, mass: 1 } as const
@@ -354,7 +364,7 @@ export function GlobalUI({
               className="h-10 w-10 shrink-0 md:hidden"
               aria-label="Toggle menu"
             >
-              <Menu className="h-5 w-5" />
+              <MenuIcon size={20} className="h-5 w-5" />
             </Button>
           ) : null}
           <h1 className="text-lg font-bold sm:text-xl md:text-2xl">{pageTitle}</h1>

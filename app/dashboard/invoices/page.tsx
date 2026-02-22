@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Receipt, Filter, X, FileText, Download } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface Invoice {
   id: string
@@ -40,7 +41,7 @@ const mockInvoices: Invoice[] = []
 
 const statusOptions = ["Show All", "Draft", "Paid", "Not Paid"]
 const typeOptions = ["Show All", "Has Invoice", "No Invoice"]
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 
 export default function InvoicesPage() {
   const [invoices] = useState<Invoice[]>(mockInvoices)

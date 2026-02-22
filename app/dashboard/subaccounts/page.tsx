@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Building2, Plus, Search } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface Subaccount {
   id: string
@@ -60,7 +61,7 @@ const ghanaBanks = [
   "Zenith Bank Ghana",
 ]
 
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 const subaccountTypes = ["Bank", "Mobile Money"]
 const mobileMoneyProviders = ["MTN Momo", "Telecel Cash", "AirtelTigo Money"]
 

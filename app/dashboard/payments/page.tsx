@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CreditCard, Lock } from "lucide-react"
+import { APP_CURRENCIES, CURRENCY_LABELS } from "@/lib/currency-options"
 
 export default function PaymentsPage() {
   const [amount, setAmount] = useState("")
@@ -80,9 +81,11 @@ export default function PaymentsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GHS">GHS - Ghanaian Cedi</SelectItem>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    {APP_CURRENCIES.map((currencyCode) => (
+                      <SelectItem key={currencyCode} value={currencyCode}>
+                        {currencyCode} - {CURRENCY_LABELS[currencyCode]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -219,4 +222,3 @@ export default function PaymentsPage() {
     </div>
   )
 }
-

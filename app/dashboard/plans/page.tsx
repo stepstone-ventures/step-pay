@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Plus, Filter, X } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface Plan {
   id: string
@@ -37,7 +38,7 @@ const mockPlans: Plan[] = []
 
 const statusOptions = ["Show All", "Active", "Archived", "Deleted"]
 const intervalOptions = ["Hourly", "Daily", "Weekly", "Monthly", "Annually"]
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 const subscriptionCountOptions = ["Show All", "Enter Amount"]
 const amountOptions = ["Show All", "Enter Amount"]
 const revenueOptions = ["Show All", "Enter Revenue"]

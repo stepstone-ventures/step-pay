@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Plus, Filter, X, CreditCard, Repeat, Package, Upload, ChevronDown, ChevronUp } from "lucide-react"
+import { APP_CURRENCIES } from "@/lib/currency-options"
 
 interface PaymentPage {
   id: string
@@ -33,7 +34,7 @@ const mockPaymentPages: PaymentPage[] = []
 const mockPlans = ["Plan A", "Plan B", "Plan C"]
 const mockSplitGroups = ["Split Group 1", "Split Group 2"]
 const mockSubaccounts = ["Subaccount 1", "Subaccount 2"]
-const currencies = ["GHS", "USD", "EUR", "NGN", "KES", "ZAR"]
+const currencies = APP_CURRENCIES
 const intervals = ["Hourly", "Daily", "Weekly", "Monthly", "Quarterly", "Biannually", "Annually"]
 
 export default function PaymentPagesPage() {
