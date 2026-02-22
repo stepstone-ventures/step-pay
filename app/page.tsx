@@ -214,7 +214,7 @@ export default function Home() {
               />
             </span>
             <span className="max-w-2xl font-sans font-light text-black dark:text-white">
-              Step up your business with our secure digital payments. Make data-driven decisions with StepPay Analytics&apos;s prescriptive analytics.
+              Step up your business with our secure digital payments. Make data-driven business decisions with StepPay&apos;s prescriptive & intelligent analytics.
             </span>
           </div>
           <div className="flex h-[420px] md:h-[520px]">

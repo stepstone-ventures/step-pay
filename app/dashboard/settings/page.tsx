@@ -243,10 +243,10 @@ export default function SettingsPage() {
       ) : null}
 
       <AnimateTabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <AnimateTabsList className="grid-cols-2 w-full md:w-fit md:min-w-[420px]">
+        <AnimateTabsList className="grid-cols-2 w-full">
           {tabs.map((tab) => {
             return (
-              <AnimateTabsTrigger key={tab.id} value={tab.id} className="text-xs sm:text-sm">
+              <AnimateTabsTrigger key={tab.id} value={tab.id}>
                 <span>{tab.label}</span>
               </AnimateTabsTrigger>
             )
