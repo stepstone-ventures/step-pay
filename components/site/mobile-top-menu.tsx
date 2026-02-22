@@ -112,10 +112,7 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
           <div className="flex items-center justify-between gap-6">
             <SheetTitle>Menu</SheetTitle>
             <div className="ml-auto flex items-center gap-5">
-              <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-2.5 py-2">
-                <span className="text-xs text-muted-foreground">Theme</span>
-                <ThemeTogglerButton variant="secondary" size="default" className="border border-border/60" />
-              </div>
+              <ThemeTogglerButton variant="secondary" size="default" className="border border-border/60" />
               <SheetClose asChild>
                 <button
                   type="button"
