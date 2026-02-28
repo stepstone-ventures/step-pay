@@ -30,8 +30,15 @@ type ShaderModule = {
 }
 
 const importFromUrl = (url: string) => {
-  const importer = new Function("moduleUrl", "return import(moduleUrl)") as (moduleUrl: string) => Promise<unknown>
-  return importer(url)
+  return import(/* webpackIgnore: true */ url)
+}
+
+function sanitizeSvgMarkup(markup: string) {
+  return markup
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .replace(/\son\w+='[^']*'/gi, "")
+    .replace(/\s(?:href|xlink:href)=["']javascript:[^"']*["']/gi, "")
 }
 
 function InlineSVG({ src, size, color }: { src?: string; size: number; color: string }) {
@@ -43,10 +50,21 @@ function InlineSVG({ src, size, color }: { src?: string; size: number; color: st
       return
     }
 
+    try {
+      const parsedUrl = new URL(src, window.location.origin)
+      if (parsedUrl.origin !== window.location.origin) {
+        setSvg(null)
+        return
+      }
+    } catch {
+      setSvg(null)
+      return
+    }
+
     fetch(src)
       .then((res) => res.text())
       .then((text) => {
-        const normalized = text
+        const normalized = sanitizeSvgMarkup(text)
           .replace(/stroke="(?!none).*?"/g, 'stroke="currentColor"')
           .replace(/fill="(?!none).*?"/g, 'fill="currentColor"')
         setSvg(normalized)

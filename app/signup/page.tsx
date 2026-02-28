@@ -16,6 +16,7 @@ import { ShareButton } from "@/components/animate-ui/components/community/share-
 import { UserPresenceAvatar } from "@/components/animate-ui/components/community/user-presence-avatar"
 import { OtpVerificationDialog } from "@/components/auth/otp-verification-dialog"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
+import { PageSkeletonOverlay } from "@/components/ui/page-skeleton-overlay"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { getAuthRedirectOrigin } from "@/lib/auth/get-auth-redirect-origin"
 import { ChevronDown } from "lucide-react"
@@ -67,6 +68,7 @@ function SignupPageContent() {
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [otpEmail, setOtpEmail] = useState("")
   const [otpError, setOtpError] = useState<string | null>(null)
+  const [otpChecking, setOtpChecking] = useState(false)
   const [otpVerifying, setOtpVerifying] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
@@ -156,6 +158,7 @@ function SignupPageContent() {
     setLoading(true)
     setErrors({})
     setSuccessMessage(null)
+    setOtpChecking(false)
     setOtpVerifying(false)
     setOtpError(null)
 
@@ -208,29 +211,62 @@ function SignupPageContent() {
   }
 
   const handleOtpDialogOpenChange = (open: boolean) => {
-    if (!open && otpVerifying) return
+    if (!open && (otpChecking || otpVerifying)) return
     setOtpDialogOpen(open)
     if (!open) {
       setOtpError(null)
+      setOtpChecking(false)
       setOtpVerifying(false)
     }
   }
 
-  const handleOtpComplete = (code: string) => {
+  const handleOtpComplete = async (code: string) => {
     if (!otpEmail) {
       setOtpError("Please request a new verification code.")
       return
     }
 
-    setOtpVerifying(true)
+    setOtpChecking(true)
+    setOtpVerifying(false)
     setOtpError(null)
 
-    const confirmParams = new URLSearchParams()
-    confirmParams.set("token", code)
-    confirmParams.set("email", otpEmail)
-    confirmParams.set("next", "/dashboard")
-    confirmParams.set("error_redirect", "/signup")
-    window.location.assign(`/auth/confirm?${confirmParams.toString()}`)
+    try {
+      const confirmParams = new URLSearchParams()
+      confirmParams.set("token", code)
+      confirmParams.set("email", otpEmail)
+      confirmParams.set("next", "/dashboard")
+      confirmParams.set("error_redirect", "/signup")
+      confirmParams.set("mode", "json")
+
+      const response = await fetch(`/auth/confirm?${confirmParams.toString()}`, {
+        credentials: "include",
+      })
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setOtpError(
+          typeof payload?.error_description === "string"
+            ? payload.error_description
+            : "Invalid verification code. Please try again."
+        )
+        setOtpChecking(false)
+        return
+      }
+
+      const redirectTo = typeof payload?.redirectTo === "string" ? payload.redirectTo : "/dashboard"
+
+      setOtpChecking(false)
+      setOtpVerifying(true)
+      try {
+        window.sessionStorage.setItem("auth_dashboard_loader_pending", String(Date.now()))
+      } catch {
+        // Continue even if sessionStorage is unavailable.
+      }
+      window.location.assign(redirectTo)
+    } catch {
+      setOtpChecking(false)
+      setOtpError("Could not verify code. Please try again.")
+    }
   }
 
   const handleGoogleSignUp = async () => {
@@ -279,6 +315,7 @@ function SignupPageContent() {
 
     setOtpEmail(normalizedEmail)
     setOtpError(null)
+    setOtpChecking(false)
     setOtpVerifying(false)
     setOtpDialogOpen(true)
   }
@@ -291,6 +328,7 @@ function SignupPageContent() {
     : isResendLocked
       ? `Send Verification Code (${cooldownRemaining}s)`
       : "Send Verification Code"
+  const showAuthLoader = otpVerifying
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
@@ -484,10 +522,11 @@ function SignupPageContent() {
           <p>&copy; 2026 StepPay Incorporated. All rights reserved.</p>
         </div>
       </footer>
+      <PageSkeletonOverlay visible={showAuthLoader} variant="auth" durationMs={null} />
       <OtpVerificationDialog
         email={otpEmail}
         error={otpError}
-        isVerifying={otpVerifying}
+        isVerifying={otpChecking || otpVerifying}
         onComplete={handleOtpComplete}
         onOpenChange={handleOtpDialogOpenChange}
         open={otpDialogOpen}

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useProtectedComponentEnabled } from "@/lib/security/client-component-guard"
 
 type ColorRGB = {
   r: number
@@ -169,6 +170,9 @@ export function FluidCursor({
   enabled = true,
   ...props
 }: FluidCursorProps) {
+  const componentEnabled = useProtectedComponentEnabled()
+  if (!componentEnabled) return null
+
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
 

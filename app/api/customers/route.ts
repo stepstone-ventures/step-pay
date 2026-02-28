@@ -8,16 +8,16 @@ export async function GET() {
   if (unauthorizedResponse) return unauthorizedResponse
 
   try {
-    const filePath = join(process.cwd(), "data", "payment-volume.json")
+    const filePath = join(process.cwd(), "data", "customers.json")
     const fileContents = await readFile(filePath, "utf8")
-    const volumeData = JSON.parse(fileContents)
-    return NextResponse.json(volumeData, {
+    const customersData = JSON.parse(fileContents)
+    return NextResponse.json(customersData, {
       headers: PRIVATE_API_CACHE_HEADERS,
     })
   } catch (error) {
-    console.error("Error loading payment volume:", error)
+    console.error("Error loading customers:", error)
     return NextResponse.json(
-      { error: "Failed to load payment volume" },
+      { error: "Failed to load customers" },
       { status: 500, headers: PRIVATE_API_CACHE_HEADERS }
     )
   }

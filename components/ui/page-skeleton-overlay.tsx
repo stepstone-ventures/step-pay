@@ -11,6 +11,7 @@ type PageSkeletonOverlayProps = {
   desktopContentOnly?: boolean
   className?: string
   variant?: PageSkeletonOverlayVariant
+  durationMs?: number | null
 }
 
 const OVERLAY_MAX_DURATION_MS = 2000
@@ -20,6 +21,7 @@ export function PageSkeletonOverlay({
   desktopContentOnly = false,
   className,
   variant: _variant = "auto",
+  durationMs = OVERLAY_MAX_DURATION_MS,
 }: PageSkeletonOverlayProps) {
   const [isShowing, setIsShowing] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -36,11 +38,15 @@ export function PageSkeletonOverlay({
     }
 
     setIsShowing(true)
+    if (durationMs === null) {
+      return
+    }
+
     timeoutRef.current = setTimeout(() => {
       setIsShowing(false)
       timeoutRef.current = null
-    }, OVERLAY_MAX_DURATION_MS)
-  }, [visible])
+    }, durationMs)
+  }, [durationMs, visible])
 
   useEffect(() => {
     return () => {

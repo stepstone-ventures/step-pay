@@ -77,6 +77,8 @@ async function ensureMerchantRow(supabase: ReturnType<typeof createSupabaseRoute
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
+  const responseMode = requestUrl.searchParams.get("mode")
+  const wantsJson = responseMode === "json"
   const nextPath = normalizeNextPath(requestUrl.searchParams.get("next"))
   const errorRedirectPath = normalizeNextPath(requestUrl.searchParams.get("error_redirect")) ?? "/login"
   const accessToken = requestUrl.searchParams.get("access_token")
@@ -88,6 +90,16 @@ export async function GET(request: Request) {
   const type = normalizeOtpType(requestUrl.searchParams.get("type"))
 
   if (!accessToken && !refreshToken && !tokenHash && !code && !(token && email)) {
+    if (wantsJson) {
+      return NextResponse.json(
+        {
+          error: "invalid_link",
+          error_description: "This verification link is invalid or expired.",
+        },
+        { status: 400 }
+      )
+    }
+
     const invalidLinkUrl = new URL(errorRedirectPath, request.url)
     invalidLinkUrl.searchParams.set("error", "invalid_link")
     return NextResponse.redirect(invalidLinkUrl)
@@ -201,6 +213,17 @@ export async function GET(request: Request) {
   if (!confirmed) {
     const authError = authErrors[authErrors.length - 1] ?? "Error confirming user"
     console.error("Verification error:", authErrors)
+
+    if (wantsJson) {
+      return NextResponse.json(
+        {
+          error: "verification_failed",
+          error_description: authError,
+        },
+        { status: 400 }
+      )
+    }
+
     const errorUrl = new URL(errorRedirectPath, request.url)
     errorUrl.searchParams.set("error", "verification_failed")
     errorUrl.searchParams.set("error_description", authError)
@@ -209,5 +232,10 @@ export async function GET(request: Request) {
 
   await ensureMerchantRow(supabase)
   const redirectPath = nextPath ?? "/login?confirmed=true"
+
+  if (wantsJson) {
+    return NextResponse.json({ redirectTo: redirectPath })
+  }
+
   return NextResponse.redirect(new URL(redirectPath, request.url))
 }

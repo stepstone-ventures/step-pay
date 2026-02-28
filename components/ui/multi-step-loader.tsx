@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useProtectedComponentEnabled } from '@/lib/security/client-component-guard'
 
 type MultiStepLoaderProps = {
   open: boolean
@@ -19,6 +20,9 @@ export function MultiStepLoader({
   steps,
   currentStep,
 }: MultiStepLoaderProps) {
+  const componentEnabled = useProtectedComponentEnabled()
+  if (!componentEnabled) return null
+
   return (
     <AnimatePresence>
       {open ? (

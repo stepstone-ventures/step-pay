@@ -1,8 +1,27 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 import { getSupabasePublicEnv } from "@/lib/supabase/env"
+import { isRequestHostAllowed } from "@/lib/security/host-allowlist"
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  if (!isRequestHostAllowed(request.headers.get("host"))) {
+    return new NextResponse("Forbidden", { status: 403 })
+  }
+
+  if (pathname.startsWith("/_next/static/") && pathname.endsWith(".map")) {
+    return new NextResponse(null, { status: 404 })
+  }
+
+  if (!pathname.startsWith("/dashboard")) {
+    return NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -46,8 +65,6 @@ export async function middleware(request: NextRequest) {
     user = session?.user ?? null
   }
 
-  const { pathname } = request.nextUrl
-
   if (pathname.startsWith("/dashboard")) {
     if (!user) {
       const loginUrl = new URL("/login", request.url)
@@ -69,5 +86,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/:path*"],
 }

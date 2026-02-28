@@ -55,10 +55,15 @@ export default function CustomersPage() {
 
   // Fetch customers from API route
   useEffect(() => {
-    fetch("/api/customers")
-      .then((res) => res.json())
+    fetch("/api/customers", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Request failed with status ${res.status}`)
+        }
+        return res.json()
+      })
       .then((data) => {
-        setCustomers(data)
+        setCustomers(Array.isArray(data) ? data : [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

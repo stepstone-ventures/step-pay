@@ -3,6 +3,7 @@
 import * as React from "react"
 import type { ButtonHTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
+import { useProtectedComponentEnabled } from "@/lib/security/client-component-guard"
 
 type ShaderModule = {
   liquidMetalFragmentShader: unknown
@@ -22,8 +23,7 @@ type HaloAssistantButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "c
 }
 
 const importFromUrl = (url: string) => {
-  const importer = new Function("moduleUrl", "return import(moduleUrl)") as (moduleUrl: string) => Promise<unknown>
-  return importer(url)
+  return import(/* webpackIgnore: true */ url)
 }
 
 const BUTTON_SIZE = 40
@@ -31,6 +31,9 @@ const RING_STROKE = 2.4
 const OUTER_RADIUS = 12
 
 export function HaloAssistantButton({ className, type = "button", ...props }: HaloAssistantButtonProps) {
+  const componentEnabled = useProtectedComponentEnabled()
+  if (!componentEnabled) return null
+
   const shaderRef = React.useRef<HTMLDivElement | null>(null)
 
   React.useEffect(() => {

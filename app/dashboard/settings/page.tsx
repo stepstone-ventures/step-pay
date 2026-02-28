@@ -94,8 +94,8 @@ export default function SettingsPage() {
 
   // API Keys State
   const [apiKeys, setApiKeys] = useState({
-    testSecretKey: "sk_test_1234567890abcdef",
-    testPublicKey: "pk_test_1234567890abcdef",
+    testSecretKey: "",
+    testPublicKey: process.env.NEXT_PUBLIC_STEPPAY_PUBLIC_KEY ?? "",
     ipWhitelist: "",
     testCallbackUrl: "",
     testWebhookUrl: "",
@@ -147,7 +147,15 @@ export default function SettingsPage() {
       }
 
       if (storedApiKeys) {
-        setApiKeys((previous) => ({ ...previous, ...JSON.parse(storedApiKeys) }))
+        const parsed = JSON.parse(storedApiKeys) as Record<string, unknown>
+        if (parsed && typeof parsed === "object") {
+          setApiKeys((previous) => ({
+            ...previous,
+            ipWhitelist: typeof parsed.ipWhitelist === "string" ? parsed.ipWhitelist : "",
+            testCallbackUrl: typeof parsed.testCallbackUrl === "string" ? parsed.testCallbackUrl : "",
+            testWebhookUrl: typeof parsed.testWebhookUrl === "string" ? parsed.testWebhookUrl : "",
+          }))
+        }
       }
     } catch {
       // Use defaults when local data is invalid.
@@ -168,9 +176,15 @@ export default function SettingsPage() {
   const handleSaveApiKeys = async () => {
     try {
       setStatusError(null)
-      localStorage.setItem("settings_api_keys", JSON.stringify(apiKeys))
-      await persistSettingsMetadata({ settings_api_keys: apiKeys })
-      setStatusMessage("API settings saved successfully.")
+      const apiNetworkSettings = {
+        ipWhitelist: apiKeys.ipWhitelist,
+        testCallbackUrl: apiKeys.testCallbackUrl,
+        testWebhookUrl: apiKeys.testWebhookUrl,
+      }
+
+      localStorage.setItem("settings_api_keys", JSON.stringify(apiNetworkSettings))
+      await persistSettingsMetadata({ settings_api_network: apiNetworkSettings })
+      setStatusMessage("API network and webhook settings saved. Secret keys remain server-side.")
     } catch {
       setStatusError("Could not save API settings right now. Please try again.")
     }
@@ -615,9 +629,9 @@ export default function SettingsPage() {
         <AnimateTabsContent value="api-keys" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Test API Keys</CardTitle>
+              <CardTitle>API Keys</CardTitle>
               <CardDescription>
-                Use these keys for testing in your development environment
+                Secret keys are intentionally hidden in the dashboard and should be managed on the server.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -625,17 +639,20 @@ export default function SettingsPage() {
                 <Label>Test Secret Key</Label>
                 <div className="flex gap-2">
                   <Input
-                    type="password"
-                    value={apiKeys.testSecretKey}
+                    value={apiKeys.testSecretKey || "Managed server-side (not exposed to browser)"}
                     readOnly
                     className="font-mono"
                   />
-                  <Button variant="outline" onClick={() => handleCopyValue(apiKeys.testSecretKey)}>
+                  <Button
+                    variant="outline"
+                    disabled={!apiKeys.testSecretKey}
+                    onClick={() => handleCopyValue(apiKeys.testSecretKey)}
+                  >
                     Copy
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Keep this key secret. Never share it publicly.
+                  Secret keys should never be persisted in local storage or client metadata.
                 </p>
               </div>
 
@@ -643,16 +660,20 @@ export default function SettingsPage() {
                 <Label>Test Public Key</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={apiKeys.testPublicKey}
+                    value={apiKeys.testPublicKey || "Not configured"}
                     readOnly
                     className="font-mono"
                   />
-                  <Button variant="outline" onClick={() => handleCopyValue(apiKeys.testPublicKey)}>
+                  <Button
+                    variant="outline"
+                    disabled={!apiKeys.testPublicKey}
+                    onClick={() => handleCopyValue(apiKeys.testPublicKey)}
+                  >
                     Copy
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  This key can be safely exposed in client-side code.
+                  Configure a public key with `NEXT_PUBLIC_STEPPAY_PUBLIC_KEY` if needed.
                 </p>
               </div>
             </CardContent>

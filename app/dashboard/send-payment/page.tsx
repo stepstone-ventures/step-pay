@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { MultiStepLoader } from "@/components/ui/multi-step-loader"
-import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { APP_CURRENCIES } from "@/lib/currency-options"
 
 type MerchantRecipient = {
@@ -99,7 +98,6 @@ function getComplianceProgress() {
 
 export default function SendPaymentPage() {
   const router = useRouter()
-  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
   const mountedRef = useRef(true)
 
   const [recipientType, setRecipientType] = useState<RecipientType>("steppay")
@@ -130,13 +128,6 @@ export default function SendPaymentPage() {
     [recipientType]
   )
 
-  const getSupabase = () => {
-    if (!supabaseRef.current) {
-      supabaseRef.current = createSupabaseBrowserClient()
-    }
-    return supabaseRef.current
-  }
-
   useEffect(() => {
     return () => {
       mountedRef.current = false
@@ -156,38 +147,27 @@ export default function SendPaymentPage() {
 
     setRecipientLoading(true)
     try {
-      const supabase = getSupabase()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const lookupUrl = `/api/merchant/lookup?step_tag=${encodeURIComponent(normalizedTag)}`
+      const response = await fetch(lookupUrl, { cache: "no-store" })
+      const payload = await response.json().catch(() => null)
 
-      const { data, error } = await supabase
-        .from("merchants")
-        .select("user_id,business_name,email,step_tag")
-        .eq("step_tag", normalizedTag)
-        .maybeSingle()
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          setRecipientError("No StepPay business account found with this StepTag.")
-          return null
-        }
-        setRecipientError("Could not verify StepTag right now. Please try again.")
+      if (!response.ok) {
+        const message =
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Could not verify StepTag right now. Please try again."
+        setRecipientError(message)
         return null
       }
 
-      if (!data) {
+      if (!payload || typeof payload !== "object") {
         setRecipientError("No StepPay business account found with this StepTag.")
         return null
       }
 
-      if (user?.id && data.user_id === user.id) {
-        setRecipientError("You cannot send payment to your own StepTag.")
-        return null
-      }
-
-      setRecipient(data)
-      return data
+      const resolvedRecipient = payload as MerchantRecipient
+      setRecipient(resolvedRecipient)
+      return resolvedRecipient
     } finally {
       if (mountedRef.current) {
         setRecipientLoading(false)

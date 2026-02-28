@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useProtectedComponentEnabled } from '@/lib/security/client-component-guard';
 
 type LiquidButtonProps = HTMLMotionProps<'button'> & {
   delay?: string;
@@ -23,6 +24,9 @@ const LiquidButton = React.forwardRef<HTMLButtonElement, LiquidButtonProps>(func
   }: LiquidButtonProps,
   ref
 ) {
+  const componentEnabled = useProtectedComponentEnabled();
+  if (!componentEnabled) return null;
+
   const { style: userStyle, ...restProps } = props as any;
   const mergedStyle = {
     ['--liquid-button-fill-width' as any]: '-1%',

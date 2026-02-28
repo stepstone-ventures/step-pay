@@ -9,6 +9,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { APP_CURRENCIES, getCurrencyForCountry, isAppCurrency, type AppCurrency } from "@/lib/currency-options"
 import type { Transaction } from "@/lib/mock-data"
 
+const DASHBOARD_READY_EVENT = "dashboard:ready"
+
 type ExchangeRatesResponse = {
   base: "USD"
   date: string
@@ -47,10 +49,18 @@ export default function DashboardPage() {
     const supabase = createSupabaseBrowserClient()
 
     const hydrateDashboard = async () => {
+      const fetchJson = async (url: string, cacheMode: RequestCache = "default") => {
+        const response = await fetch(url, { cache: cacheMode })
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
+        return response.json()
+      }
+
       const [transactionsResult, userResult, exchangeRatesResult] = await Promise.allSettled([
-        fetch("/api/transactions").then((res) => res.json()),
+        fetchJson("/api/transactions", "no-store"),
         supabase.auth.getUser(),
-        fetch("/api/exchange-rates").then((res) => res.json()),
+        fetchJson("/api/exchange-rates"),
       ])
 
       if (!active) return
@@ -143,6 +153,12 @@ export default function DashboardPage() {
     (transaction) => transaction.status === "failed" || transaction.status === "pending"
   ).length
   const salesPrediction = revenue * 1.15
+
+  useEffect(() => {
+    if (loading) return
+    if (typeof window === "undefined") return
+    window.dispatchEvent(new Event(DASHBOARD_READY_EVENT))
+  }, [loading])
 
   if (loading) {
     return (

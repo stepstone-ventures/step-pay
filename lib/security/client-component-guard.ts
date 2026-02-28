@@ -1,0 +1,75 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
+function toLowerSafe(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function normalizeHost(value: string | null | undefined) {
+  if (!value) return null
+
+  try {
+    return new URL(value.includes("://") ? value : `http://${value}`).hostname.toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+function parseHostPatterns(rawValue: string | undefined) {
+  if (!rawValue) return []
+  return rawValue
+    .split(",")
+    .map((entry) => toLowerSafe(entry))
+    .filter(Boolean)
+}
+
+function hostMatchesPattern(hostname: string, pattern: string) {
+  const normalizedPattern = toLowerSafe(pattern)
+  if (!normalizedPattern) return false
+
+  if (normalizedPattern.startsWith("*.")) {
+    const suffix = normalizedPattern.slice(2)
+    return hostname === suffix || hostname.endsWith(`.${suffix}`)
+  }
+
+  return hostname === normalizedPattern
+}
+
+function collectClientAllowedHostPatterns() {
+  const patterns = new Set<string>()
+
+  parseHostPatterns(process.env.NEXT_PUBLIC_ALLOWED_APP_HOSTS).forEach((pattern) => patterns.add(pattern))
+
+  const siteHost = normalizeHost(process.env.NEXT_PUBLIC_SITE_URL)
+  if (siteHost) {
+    patterns.add(siteHost)
+  }
+
+  return Array.from(patterns)
+}
+
+export function isCurrentHostAllowed() {
+  if (typeof window === "undefined") return true
+
+  const allowedPatterns = collectClientAllowedHostPatterns()
+  if (allowedPatterns.length === 0) return true
+
+  const hostname = window.location.hostname.toLowerCase()
+
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+    return true
+  }
+
+  return allowedPatterns.some((pattern) => hostMatchesPattern(hostname, pattern))
+}
+
+export function useProtectedComponentEnabled() {
+  const [enabled, setEnabled] = useState(true)
+
+  useEffect(() => {
+    setEnabled(isCurrentHostAllowed())
+  }, [])
+
+  return enabled
+}

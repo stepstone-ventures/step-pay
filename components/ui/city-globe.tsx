@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import { useProtectedComponentEnabled } from "@/lib/security/client-component-guard"
 
 type CityMarker = {
   name: string
@@ -133,10 +134,8 @@ async function loadCobeFactory(): Promise<CobeFactory> {
 
   if (!window.__cobeFactoryPromise) {
     window.__cobeFactoryPromise = (async () => {
-      const runtimeImport = new Function(
-        "url",
-        "return import(/* webpackIgnore: true */ url)"
-      ) as (url: string) => Promise<{ default?: CobeFactory }>
+      const runtimeImport = (url: string) =>
+        import(/* webpackIgnore: true */ url) as Promise<{ default?: CobeFactory }>
 
       try {
         const module = await runtimeImport(COBE_ESM_URL)
@@ -162,6 +161,9 @@ type CityGlobeProps = {
 }
 
 export function CityGlobe({ className }: CityGlobeProps) {
+  const componentEnabled = useProtectedComponentEnabled()
+  if (!componentEnabled) return null
+
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
   const pixelRatio = BASE_CONFIG.devicePixelRatio

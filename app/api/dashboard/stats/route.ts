@@ -2,8 +2,12 @@ import { NextResponse } from "next/server"
 import { readFile } from "fs/promises"
 import { join } from "path"
 import type { Transaction } from "@/lib/mock-data"
+import { PRIVATE_API_CACHE_HEADERS, requireAuthenticatedApiUser } from "@/lib/security/route-auth"
 
 export async function GET() {
+  const { unauthorizedResponse } = await requireAuthenticatedApiUser()
+  if (unauthorizedResponse) return unauthorizedResponse
+
   try {
     const filePath = join(process.cwd(), "data", "transactions.json")
     const fileContents = await readFile(filePath, "utf8")
@@ -29,10 +33,14 @@ export async function GET() {
       pendingAmount,
       totalTransactions,
       successRate,
+    }, {
+      headers: PRIVATE_API_CACHE_HEADERS,
     })
   } catch (error) {
     console.error("Error calculating dashboard stats:", error)
-    return NextResponse.json({ error: "Failed to calculate stats" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to calculate stats" },
+      { status: 500, headers: PRIVATE_API_CACHE_HEADERS }
+    )
   }
 }
-

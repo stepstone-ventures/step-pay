@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useProtectedComponentEnabled } from "@/lib/security/client-component-guard";
 
 type PresenceUser = {
   id: number | string;
@@ -55,6 +56,9 @@ export function UserPresenceAvatar({
   className,
   ...props
 }: UserPresenceAvatarProps) {
+  const componentEnabled = useProtectedComponentEnabled();
+  if (!componentEnabled) return null;
+
   const visibleUsers = users.slice(0, maxVisible);
   const remaining = users.length - visibleUsers.length;
 

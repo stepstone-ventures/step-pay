@@ -150,11 +150,25 @@ export function GlobalUI({
         setProfileImage(storedProfileImage)
       }
 
+      let merchantProfile:
+        | { stepTag?: string | null; businessName?: string | null; email?: string | null }
+        | null = null
+      try {
+        const profileResponse = await fetch("/api/merchant/profile", { cache: "no-store" })
+        if (profileResponse.ok) {
+          merchantProfile = await profileResponse.json()
+        }
+      } catch {
+        // Keep local fallback values.
+      }
+
       const {
         data: { user },
       } = await getSupabaseClient().auth.getUser()
 
-      if (user?.email) {
+      if (merchantProfile?.email) {
+        setUserEmail(merchantProfile.email)
+      } else if (user?.email) {
         setUserEmail(user.email)
       }
 
@@ -169,27 +183,24 @@ export function GlobalUI({
         window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       }
 
-      if (user?.id) {
-        const { data: merchantRow } = await getSupabaseClient()
-          .from("merchants")
-          .select("step_tag")
-          .eq("user_id", user.id)
-          .maybeSingle()
-
-        if (typeof merchantRow?.step_tag === "string" && merchantRow.step_tag.trim().length > 0) {
-          setStepTag(merchantRow.step_tag)
-          setStepTagInput(merchantRow.step_tag)
-          localStorage.setItem("dashboard_step_tag", merchantRow.step_tag)
-          localStorage.setItem("dashboard_step_tag_locked", "true")
-          detectedStepTag = merchantRow.step_tag
-          window.dispatchEvent(new Event("dashboardNotificationsChanged"))
-        }
+      if (typeof merchantProfile?.stepTag === "string" && merchantProfile.stepTag.trim().length > 0) {
+        setStepTag(merchantProfile.stepTag)
+        setStepTagInput(merchantProfile.stepTag)
+        localStorage.setItem("dashboard_step_tag", merchantProfile.stepTag)
+        localStorage.setItem("dashboard_step_tag_locked", "true")
+        detectedStepTag = merchantProfile.stepTag
+        window.dispatchEvent(new Event("dashboardNotificationsChanged"))
       }
 
       if (!detectedStepTag) {
         localStorage.removeItem("dashboard_step_tag")
         localStorage.removeItem("dashboard_step_tag_locked")
         window.dispatchEvent(new Event("dashboardNotificationsChanged"))
+      }
+
+      if (typeof merchantProfile?.businessName === "string" && merchantProfile.businessName.trim().length > 0) {
+        setBusinessName(merchantProfile.businessName)
+        return
       }
 
       const metadataName = user?.user_metadata?.business_name
@@ -270,82 +281,30 @@ export function GlobalUI({
     setStepTagSuccess(null)
 
     try {
-      const supabase = getSupabaseClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        throw new Error("You must be signed in to set a StepTag.")
-      }
-
-      const { data: currentMerchant, error: currentMerchantError } = await supabase
-        .from("merchants")
-        .select("step_tag")
-        .eq("user_id", user.id)
-        .maybeSingle()
-
-      if (currentMerchantError && currentMerchantError.code !== "PGRST116") {
-        throw new Error("Could not validate your current StepTag state.")
-      }
-
-      const existingStepTag = currentMerchant?.step_tag?.trim()
-      if (existingStepTag && existingStepTag !== normalizedTag) {
-        throw new Error("StepTag is already set and cannot be changed.")
-      }
-
-      if (existingStepTag === normalizedTag) {
-        setStepTag(normalizedTag)
-        setStepTagInput(normalizedTag)
-        setStepTagSuccess("StepTag already saved.")
-        localStorage.setItem("dashboard_step_tag", normalizedTag)
-        localStorage.setItem("dashboard_step_tag_locked", "true")
-        window.dispatchEvent(new Event("dashboardNotificationsChanged"))
-        return
-      }
-
-      const { data: existingRow, error: existingError } = await supabase
-        .from("merchants")
-        .select("user_id")
-        .eq("step_tag", normalizedTag)
-        .maybeSingle()
-
-      if (existingError && existingError.code !== "PGRST116") {
-        throw new Error("Could not validate StepTag uniqueness right now.")
-      }
-
-      if (existingRow && existingRow.user_id !== user.id) {
-        throw new Error("This StepTag is already taken. Try another one.")
-      }
-
-      const { error: merchantUpdateError } = await supabase
-        .from("merchants")
-        .update({ step_tag: normalizedTag })
-        .eq("user_id", user.id)
-
-      if (merchantUpdateError) {
-        const message = merchantUpdateError.message.toLowerCase()
-        if (merchantUpdateError.code === "23505" || message.includes("duplicate")) {
-          throw new Error("This StepTag is already taken. Try another one.")
-        }
-        if (message.includes("column") && message.includes("step_tag")) {
-          throw new Error("StepTag setup is not available yet. Please contact support.")
-        }
-        throw new Error("Could not save StepTag right now.")
-      }
-
-      const { error: userUpdateError } = await supabase.auth.updateUser({
-        data: { step_tag: normalizedTag },
+      const response = await fetch("/api/merchant/step-tag", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stepTag: normalizedTag }),
       })
 
-      if (userUpdateError) {
-        throw new Error("StepTag saved but account metadata sync failed. Refresh and try again.")
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(
+          typeof payload?.error === "string" ? payload.error : "Could not save StepTag right now."
+        )
       }
 
-      setStepTag(normalizedTag)
-      setStepTagInput(normalizedTag)
-      setStepTagSuccess("StepTag saved successfully.")
-      localStorage.setItem("dashboard_step_tag", normalizedTag)
+      const resolvedStepTag =
+        typeof payload?.stepTag === "string" && payload.stepTag.trim().length > 0
+          ? payload.stepTag
+          : normalizedTag
+
+      setStepTag(resolvedStepTag)
+      setStepTagInput(resolvedStepTag)
+      setStepTagSuccess(payload?.alreadySet ? "StepTag already saved." : "StepTag saved successfully.")
+      localStorage.setItem("dashboard_step_tag", resolvedStepTag)
       localStorage.setItem("dashboard_step_tag_locked", "true")
       window.dispatchEvent(new Event("dashboardNotificationsChanged"))
     } catch (error: any) {
@@ -592,7 +551,7 @@ export function GlobalUI({
           />
         </SheetContent>
       </Sheet>
-      <PageSkeletonOverlay visible={signOutLoading} desktopContentOnly variant="dashboard" />
+      <PageSkeletonOverlay visible={signOutLoading} desktopContentOnly variant="dashboard" durationMs={null} />
     </>
   )
 }
