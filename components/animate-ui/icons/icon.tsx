@@ -8,6 +8,9 @@ type AnimationMap = Record<string, Record<string, Variants>>
 type IconProps<TAnimation extends string = string> = Omit<SVGMotionProps<SVGSVGElement>, 'animate'> & {
   size?: number
   animate?: TAnimation
+  startOnMount?: boolean
+  animationTrigger?: number
+  loop?: boolean
 }
 
 type IconComponent<TAnimation extends string> = (props: IconProps<TAnimation>) => React.ReactNode
@@ -44,17 +47,33 @@ function IconWrapper<TAnimation extends string>({
   icon: Icon,
   size = 20,
   animate = 'default' as TAnimation,
+  startOnMount = true,
+  animationTrigger,
+  loop,
   ...props
 }: IconWrapperProps<TAnimation>) {
   const controls = useAnimationControls()
+  const previousTriggerRef = React.useRef(animationTrigger)
 
   React.useEffect(() => {
     let isMounted = true
+    const hasManualTrigger = typeof animationTrigger === 'number'
+    const triggerChanged = previousTriggerRef.current !== animationTrigger
+    previousTriggerRef.current = animationTrigger
+
+    const shouldRun = startOnMount || (hasManualTrigger && triggerChanged)
+    if (!shouldRun) {
+      controls.set('initial')
+      return () => {
+        isMounted = false
+        controls.stop()
+      }
+    }
 
     const runAnimation = async () => {
       controls.set('initial')
 
-      const shouldLoop = String(animate).includes('loop')
+      const shouldLoop = loop ?? (startOnMount && String(animate).includes('loop'))
       if (shouldLoop) {
         while (isMounted) {
           await controls.start('animate')
@@ -73,7 +92,7 @@ function IconWrapper<TAnimation extends string>({
       isMounted = false
       controls.stop()
     }
-  }, [animate, controls])
+  }, [animate, animationTrigger, controls, loop, startOnMount])
 
   return (
     <AnimateIconContext.Provider

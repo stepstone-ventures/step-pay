@@ -17,8 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
-import { LiquidButton } from "@/components/ui/liquid-button"
+import { PageSkeletonOverlay } from "@/components/ui/page-skeleton-overlay"
+import { HaloAssistantButton } from "@/components/ui/halo-assistant-button"
+import { VanishInput } from "@/components/ui/vanish-input"
 import { cn } from "@/lib/utils"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
@@ -108,6 +111,8 @@ export function GlobalUI({
   const [stepTagSaving, setStepTagSaving] = useState(false)
   const [stepTagError, setStepTagError] = useState<string | null>(null)
   const [stepTagSuccess, setStepTagSuccess] = useState<string | null>(null)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  const [signOutLoading, setSignOutLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
 
@@ -210,10 +215,13 @@ export function GlobalUI({
   }, [])
 
   const handleSignOut = async () => {
+    setSignOutLoading(true)
     try {
       await getSupabaseClient().auth.signOut()
     } finally {
-      window.location.assign("/login")
+      window.requestAnimationFrame(() => {
+        window.location.assign("/login")
+      })
     }
   }
 
@@ -348,30 +356,32 @@ export function GlobalUI({
   }
 
   return (
-    <div
-      className={cn(
-        "fixed top-0 right-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm",
-        "left-0 md:left-64"
-      )}
-    >
-      <div className="flex h-[81px] items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-3">
-          {setMobileMenuOpen ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="h-10 w-10 shrink-0 md:hidden"
-              aria-label="Toggle menu"
-            >
-              <MenuIcon size={20} className="h-5 w-5" />
-            </Button>
-          ) : null}
-          <h1 className="text-lg font-bold sm:text-xl md:text-2xl">{pageTitle}</h1>
-        </div>
+    <>
+      <div
+        className={cn(
+          "fixed top-0 right-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm",
+          "left-0 md:left-64"
+        )}
+      >
+        <div className="flex h-[81px] items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-3">
+            {setMobileMenuOpen ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="h-10 w-10 shrink-0 md:hidden"
+                aria-label="Toggle menu"
+              >
+                <MenuIcon size={20} className="h-5 w-5" />
+              </Button>
+            ) : null}
+            <h1 className="text-lg font-bold sm:text-xl md:text-2xl">{pageTitle}</h1>
+          </div>
 
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <ThemeTogglerButton variant="secondary" size="default" className="border border-border/60" />
+          <HaloAssistantButton className="hidden md:flex" onClick={() => setAssistantOpen(true)} />
 
           <DropdownMenu
             open={accountMenuOpen}
@@ -385,14 +395,14 @@ export function GlobalUI({
             }}
           >
             <DropdownMenuTrigger asChild>
-              <LiquidButton className="h-10 gap-2 px-2.5 sm:px-3 border border-border/60 text-sm font-medium">
+              <Button forceLiquid data-topbar="true" variant="outline" className="h-10 gap-2 px-2.5 sm:px-3 border border-border/60 text-sm font-medium">
                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                   {profileImage ? <AvatarImage src={profileImage} alt="Profile" className="object-cover" /> : null}
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <span className="hidden max-w-[10rem] truncate text-sm font-medium sm:inline">{businessName}</span>
                 <ChevronDown className="h-4 w-4" />
-              </LiquidButton>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel className="font-normal">
@@ -563,8 +573,26 @@ export function GlobalUI({
             className="hidden"
             onChange={handleProfileImageUpload}
           />
+          </div>
         </div>
       </div>
-    </div>
+      <Sheet open={assistantOpen} onOpenChange={setAssistantOpen}>
+        <SheetContent
+          side="right"
+          showCloseButton={false}
+          className="w-[88vw] max-w-sm border-l border-border/70 bg-background p-6 md:w-1/3 md:max-w-none md:p-8"
+        >
+          <VanishInput
+            className="mt-10 w-full max-w-none"
+            placeholders={[
+              "Ask AI Assistant about your transactions",
+              "Summarize payout trends for this month",
+              "Find customers with failed payments",
+            ]}
+          />
+        </SheetContent>
+      </Sheet>
+      <PageSkeletonOverlay visible={signOutLoading} desktopContentOnly variant="dashboard" />
+    </>
   )
 }

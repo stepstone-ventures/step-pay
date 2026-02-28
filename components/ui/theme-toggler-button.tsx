@@ -4,7 +4,6 @@ import * as React from "react"
 import { MoonStar, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import IconWebglShader from "@/components/ui/icon-webgl-shader"
 
 type ThemeMode = "light" | "dark" | "system"
 
@@ -16,16 +15,16 @@ interface ThemeTogglerButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBu
   onImmediateChange?: (theme: ThemeMode) => void
 }
 
-const shaderSizeMap: Record<NonNullable<ThemeTogglerButtonProps["size"]>, number> = {
-  default: 40,
-  sm: 36,
-  lg: 44,
-}
-
 const iconSizeMap: Record<NonNullable<ThemeTogglerButtonProps["size"]>, number> = {
   default: 16,
   sm: 14,
   lg: 18,
+}
+
+const buttonSizeMap: Record<NonNullable<ThemeTogglerButtonProps["size"]>, string> = {
+  default: "h-10 w-10",
+  sm: "h-9 w-9",
+  lg: "h-11 w-11",
 }
 
 export function ThemeTogglerButton({
@@ -77,28 +76,18 @@ export function ThemeTogglerButton({
       aria-checked={isDark}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-full border border-border/60 bg-secondary text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
+        buttonSizeMap[size],
         className
       )}
       onClick={handleClick}
       {...props}
     >
-      <IconWebglShader
-        size={shaderSizeMap[size]}
-        strokeWidth={3}
-        iconSize={iconSize}
-        innerTop={isDark ? "#1c1c1c" : "#ffffff"}
-        innerBottom={isDark ? "#000000" : "#ffffff"}
-        innerShadow={isDark ? "inset 0 1px 4px rgba(255,255,255,0.1), inset 0 -6px 12px rgba(0,0,0,0.6)" : "none"}
-        iconColor={isDark ? "#d4d4d8" : "#000000"}
-        icon={
-          isDark ? (
-            <MoonStar width={iconSize} height={iconSize} />
-          ) : (
-            <Sun width={iconSize} height={iconSize} />
-          )
-        }
-      />
+      {isDark ? (
+        <MoonStar width={iconSize} height={iconSize} />
+      ) : (
+        <Sun width={iconSize} height={iconSize} />
+      )}
     </button>
   )
 }

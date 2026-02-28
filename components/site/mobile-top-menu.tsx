@@ -5,7 +5,7 @@ import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown, Instagram, X } from "lucide-react"
 import { MenuIcon } from "@/components/animate-ui/icons/menu"
-import { LiquidButton } from "@/components/ui/liquid-button"
+import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { cn } from "@/lib/utils"
@@ -184,9 +184,10 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
               </MenuRow>
             ) : (
               <a href="mailto:support@steppay.com?subject=StepPay%20Contact%20Sales" onClick={closeSheet} className="block">
-                <LiquidButton className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
+                <RippleButton data-topbar="true" variant="outline" className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
                   Contact Sales
-                </LiquidButton>
+                  <RippleButtonRipples />
+                </RippleButton>
               </a>
             )}
 
@@ -233,14 +234,16 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
 
         <SheetFooter className="border-t border-border/60">
           <Link href="/login" onClick={closeSheet} className="block">
-            <LiquidButton className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
+            <RippleButton data-topbar="true" variant="outline" className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
               Sign In
-            </LiquidButton>
+              <RippleButtonRipples />
+            </RippleButton>
           </Link>
           <Link href="/signup" onClick={closeSheet} className="block">
-            <LiquidButton className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
+            <RippleButton data-topbar="true" variant="outline" className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
               Get Started for Free
-            </LiquidButton>
+              <RippleButtonRipples />
+            </RippleButton>
           </Link>
         </SheetFooter>
       </SheetContent>

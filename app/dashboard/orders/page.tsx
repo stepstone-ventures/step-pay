@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { LiquidButton } from "@/components/ui/liquid-button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
@@ -235,9 +234,9 @@ export default function OrdersPage() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <LiquidButton className="h-9 w-9 border border-border/60 p-0">
+                  <Button forceLiquid variant="outline" size="icon" className="h-9 w-9 border border-border/60 p-0">
                     <MoreVertical className="h-4 w-4" />
-                  </LiquidButton>
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => {

@@ -78,6 +78,7 @@ async function ensureMerchantRow(supabase: ReturnType<typeof createSupabaseRoute
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const nextPath = normalizeNextPath(requestUrl.searchParams.get("next"))
+  const errorRedirectPath = normalizeNextPath(requestUrl.searchParams.get("error_redirect")) ?? "/login"
   const accessToken = requestUrl.searchParams.get("access_token")
   const refreshToken = requestUrl.searchParams.get("refresh_token")
   const tokenHash = requestUrl.searchParams.get("token_hash")
@@ -87,7 +88,9 @@ export async function GET(request: Request) {
   const type = normalizeOtpType(requestUrl.searchParams.get("type"))
 
   if (!accessToken && !refreshToken && !tokenHash && !code && !(token && email)) {
-    return NextResponse.redirect(new URL("/login?error=invalid_link", request.url))
+    const invalidLinkUrl = new URL(errorRedirectPath, request.url)
+    invalidLinkUrl.searchParams.set("error", "invalid_link")
+    return NextResponse.redirect(invalidLinkUrl)
   }
 
   const supabase = createSupabaseRouteClient()
@@ -198,10 +201,10 @@ export async function GET(request: Request) {
   if (!confirmed) {
     const authError = authErrors[authErrors.length - 1] ?? "Error confirming user"
     console.error("Verification error:", authErrors)
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("error", "verification_failed")
-    loginUrl.searchParams.set("error_description", authError)
-    return NextResponse.redirect(loginUrl)
+    const errorUrl = new URL(errorRedirectPath, request.url)
+    errorUrl.searchParams.set("error", "verification_failed")
+    errorUrl.searchParams.set("error_description", authError)
+    return NextResponse.redirect(errorUrl)
   }
 
   await ensureMerchantRow(supabase)

@@ -32,21 +32,27 @@ import { SidebarRouteLoader } from "@/components/dashboard/sidebar-route-loader"
 
 const pinnedNavigation = [
   {
+    id: "compliance",
     name: "Compliance",
     href: "/dashboard/compliance",
     icon: ListIcon,
+    clickAnimation: "default",
   },
   {
+    id: "dashboard",
     name: "Dashboard",
     href: "/dashboard",
     icon: ChartSplineIcon,
+    clickAnimation: "default",
   },
   {
+    id: "settings",
     name: "Settings",
     href: "/dashboard/settings",
     icon: CogIcon,
+    clickAnimation: "default-loop",
   },
-]
+] as const
 
 const sectionNavigation = [
   {
@@ -82,6 +88,7 @@ const sectionNavigation = [
 const COMPLIANCE_TOTAL_STEPS = 5
 const COMPLIANCE_STEP_IDS = new Set(["profile", "contact", "owner", "account", "service-agreement"])
 const sectionTransition = { type: "spring", stiffness: 90, damping: 12, mass: 1 } as const
+type PinnedNavigationId = (typeof pinnedNavigation)[number]["id"]
 
 const getComplianceProgress = (): number => {
   if (typeof window === "undefined") return 0
@@ -111,6 +118,11 @@ export function Sidebar({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [complianceProgress, setComplianceProgress] = useState(0)
   const [isRouteLoading, setIsRouteLoading] = useState(false)
+  const [pinnedIconTriggers, setPinnedIconTriggers] = useState<Record<PinnedNavigationId, number>>({
+    compliance: 0,
+    dashboard: 0,
+    settings: 0,
+  })
   const loaderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -158,7 +170,7 @@ export function Sidebar({
     setIsRouteLoading(true)
     loaderTimeoutRef.current = setTimeout(() => {
       setIsRouteLoading(false)
-    }, 3000)
+    }, 2000)
   }
 
   const navigateFromSidebar = (href: string) => {
@@ -166,6 +178,13 @@ export function Sidebar({
       startRouteLoader()
     }
     closeMobileIfNeeded()
+  }
+
+  const triggerPinnedIconAnimation = (id: PinnedNavigationId) => {
+    setPinnedIconTriggers((previous) => ({
+      ...previous,
+      [id]: previous[id] + 1,
+    }))
   }
 
   const sidebarContent = (
@@ -214,7 +233,10 @@ export function Sidebar({
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  onClick={() => navigateFromSidebar(item.href)}
+                  onClick={() => {
+                    triggerPinnedIconAnimation(item.id)
+                    navigateFromSidebar(item.href)
+                  }}
                   className={cn(
                     "flex items-center justify-between gap-x-3 rounded-lg px-3 py-2.5 text-sm font-semibold leading-6 transition-smooth",
                     isActive
@@ -223,7 +245,12 @@ export function Sidebar({
                   )}
                 >
                   <span className="flex items-center gap-x-3">
-                    <Icon className="h-5 w-5 shrink-0" animate="default-loop" />
+                    <Icon
+                      className="h-5 w-5 shrink-0"
+                      animate={item.clickAnimation}
+                      startOnMount={false}
+                      animationTrigger={pinnedIconTriggers[item.id]}
+                    />
                     {item.name}
                   </span>
                   {item.name === "Compliance" ? (

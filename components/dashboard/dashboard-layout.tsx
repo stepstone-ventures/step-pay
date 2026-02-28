@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { GlobalUI } from "./global-ui"
 import { ContactUsFab } from "./contact-us-fab"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -26,7 +28,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             }}
           >
             <div className="px-4 sm:px-6 md:px-8 pt-[105px] pb-6 md:pb-8 max-w-7xl mx-auto">
-              {children}
+              <div key={pathname} className="dashboard-page-reveal">
+                {children}
+              </div>
             </div>
           </main>
         </div>

@@ -4,6 +4,7 @@ import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Instagram, Share2 } from "lucide-react";
 import { LiquidButton } from "@/components/ui/liquid-button";
+import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple";
 import { cn } from "@/lib/utils";
 
 type Platform = "instagram" | "x" | "tiktok";
@@ -72,59 +73,74 @@ export function ShareButton({ className, onIconClick, ...props }: ShareButtonPro
     window.open(item.href, "_blank", "noopener,noreferrer");
   };
 
+  const content = (
+    <AnimatePresence initial={false} mode="wait">
+      {!expanded ? (
+        <motion.span
+          key="content"
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -24 }}
+          transition={{ duration: 0.3 }}
+          className="absolute inset-0 flex items-center justify-center gap-2"
+        >
+          <Share2 className="h-4 w-4" />
+          Refer
+        </motion.span>
+      ) : (
+        <motion.span
+          key="icons"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.3 }}
+          className="absolute inset-0 flex items-center justify-center gap-3"
+        >
+          {SHARE_ITEMS.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <motion.span
+                key={item.id}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.45, type: "spring", bounce: 0.4 }}
+                whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
+                className="cursor-pointer rounded-lg p-0.5"
+                onClick={(event) => handleIconClick(item, event)}
+                role="button"
+                aria-label={`Refer via ${item.id}`}
+              >
+                <Icon className="h-4 w-4" />
+              </motion.span>
+            );
+          })}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <div ref={containerRef} className={cn("relative", className)} {...props}>
       <LiquidButton
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className="relative min-w-28 h-10 px-4 py-2 text-sm font-medium border border-border/60"
+        className="relative hidden min-w-28 h-10 px-4 py-2 text-sm font-medium border border-border/60 sm:inline-flex"
         aria-pressed={expanded}
         aria-label="Refer StepPay"
       >
-        <AnimatePresence initial={false} mode="wait">
-          {!expanded ? (
-            <motion.span
-              key="content"
-              initial={{ opacity: 1, y: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -24 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex items-center justify-center gap-2"
-            >
-              <Share2 className="h-4 w-4" />
-              Refer
-            </motion.span>
-          ) : (
-            <motion.span
-              key="icons"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex items-center justify-center gap-3"
-            >
-              {SHARE_ITEMS.map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <motion.span
-                    key={item.id}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.45, type: "spring", bounce: 0.4 }}
-                    whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
-                    className="cursor-pointer rounded-lg p-0.5"
-                    onClick={(event) => handleIconClick(item, event)}
-                    role="button"
-                    aria-label={`Refer via ${item.id}`}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </motion.span>
-                );
-              })}
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {content}
       </LiquidButton>
+      <RippleButton
+        variant="outline"
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="relative min-w-28 h-10 px-4 py-2 text-sm font-medium border border-border/60 sm:hidden"
+        aria-pressed={expanded}
+        aria-label="Refer StepPay"
+      >
+        {content}
+        <RippleButtonRipples />
+      </RippleButton>
     </div>
   );
 }

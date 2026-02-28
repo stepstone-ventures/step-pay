@@ -7,16 +7,17 @@ import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatedCard } from "@/components/ui/animated-card"
 import { BorderBeam } from "@/components/ui/border-beam"
-import { LiquidButton } from "@/components/ui/liquid-button"
 import { Spline } from "@/components/ui/spline"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { RotatingText } from "@/components/animate-ui/primitives/texts/rotating"
 import { ShareButton } from "@/components/animate-ui/components/community/share-button"
+import { LiquidButton } from "@/components/ui/liquid-button"
+import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple"
 import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/tilt"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { FluidCursor } from "@/components/ui/fluid-cursor"
-import { IPhone15ProMockup } from "@/components/ui/iphone-15-pro-mockup"
+import { MacbookProMockup } from "@/components/ui/macbook-pro-mockup"
 import { CityGlobe } from "@/components/ui/city-globe"
 import {
   NfcFeatureIcon,
@@ -110,8 +111,10 @@ const STEP_CARDS = [
 export default function Home() {
   const [activeStepIndex, setActiveStepIndex] = useState(0)
   const [hideGlobeSection, setHideGlobeSection] = useState(false)
+  const [isMobileView, setIsMobileView] = useState(false)
 
   useEffect(() => {
+    const mobileLayoutQuery = window.matchMedia("(max-width: 639px)")
     const mobileQuery = window.matchMedia("(max-width: 767px)")
     const tabletQuery = window.matchMedia("(min-width: 768px) and (max-width: 1024px)")
 
@@ -121,16 +124,19 @@ export default function Home() {
       const cpuCores = navigator.hardwareConcurrency ?? 8
       const weakHardware = deviceMemory <= 4 || cpuCores <= 4
 
-      const isMobileView = mobileQuery.matches
+      const isTabletOrMobile = mobileQuery.matches
       const isWeakTablet = tabletQuery.matches && weakHardware
-      setHideGlobeSection(isMobileView || isWeakTablet)
+      setHideGlobeSection(isTabletOrMobile || isWeakTablet)
+      setIsMobileView(mobileLayoutQuery.matches)
     }
 
     updateVisibility()
+    mobileLayoutQuery.addEventListener("change", updateVisibility)
     mobileQuery.addEventListener("change", updateVisibility)
     tabletQuery.addEventListener("change", updateVisibility)
 
     return () => {
+      mobileLayoutQuery.removeEventListener("change", updateVisibility)
       mobileQuery.removeEventListener("change", updateVisibility)
       tabletQuery.removeEventListener("change", updateVisibility)
     }
@@ -139,6 +145,57 @@ export default function Home() {
   const goToStep = (index: number) => {
     const normalized = (index + STEP_CARDS.length) % STEP_CARDS.length
     setActiveStepIndex(normalized)
+  }
+
+  if (isMobileView) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-sm">
+          <div className="container mx-auto flex items-center justify-between px-4 py-4">
+            <Link href="/" className="flex items-center space-x-1.5">
+              <div className="relative h-10 w-14">
+                <Image
+                  src="/steppay-logo-liquid.png?v=3"
+                  alt="StepPay logo"
+                  fill
+                  sizes="64px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <span className="text-lg font-semibold tracking-tight">StepPay</span>
+            </Link>
+            <MobileTopMenu contactSalesAsMenuRow />
+          </div>
+        </header>
+
+        <main className="px-6 py-10">
+          <div className="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-md flex-col items-center justify-center gap-8 text-center">
+            <h1 className="text-4xl font-semibold tracking-tight">
+              <RotatingText
+                texts={["Step Smart", "Step Secure", "Step Ahead"]}
+                className="text-4xl font-semibold"
+              />
+            </h1>
+            <CityGlobe className="max-w-[420px]" />
+            <div className="w-full space-y-3">
+              <Link href="/login" className="block">
+                <RippleButton variant="outline" size="lg" className="w-full text-base font-semibold">
+                  Sign In
+                  <RippleButtonRipples />
+                </RippleButton>
+              </Link>
+              <Link href="/signup" className="block">
+                <RippleButton size="lg" className="w-full text-base font-semibold">
+                  Create a Free Account
+                  <RippleButtonRipples />
+                </RippleButton>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -237,7 +294,7 @@ export default function Home() {
             <span className="fx-shield">4 Simple Steps</span>
           </h2>
         </div>
-        <div className="mx-auto w-full max-w-xl">
+        <div className="mx-auto w-full max-w-6xl">
           <div className="relative overflow-hidden rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-out"
@@ -255,8 +312,8 @@ export default function Home() {
                           </div>
                           <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">{step.title}</h3>
                           <p className="text-muted-foreground leading-relaxed text-center text-sm">{step.description}</p>
-                          <div className="relative mt-4 flex h-[26rem] sm:h-[31.2rem] w-full items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/20">
-                            <IPhone15ProMockup src={step.imageSrc} className="h-[99%] w-auto max-w-[312px]" />
+                          <div className="relative mt-4 flex h-[24rem] md:h-[28rem] lg:h-[32rem] w-full items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/20 px-4 sm:px-5 lg:px-6">
+                            <MacbookProMockup src={step.imageSrc} className="h-full w-auto max-w-full" />
                           </div>
                         </CardContent>
                       </AnimatedCard>

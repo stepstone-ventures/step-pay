@@ -97,7 +97,7 @@ export function UserPresenceAvatar({
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        <span className="font-semibold text-foreground">Go Global</span>
+        <span className="font-semibold text-foreground">Step Up Your Payments</span>
       </p>
     </div>
   );

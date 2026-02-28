@@ -7,22 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BorderBeam } from "@/components/ui/border-beam"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { LiquidButton } from "@/components/ui/liquid-button"
-import { IconButton } from "@/components/ui/icon-button"
+import { FluidCursor } from "@/components/ui/fluid-cursor"
 import { ThemeTogglerButton } from "@/components/ui/theme-toggler-button"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { FluidCursor } from "@/components/ui/fluid-cursor"
-import { AnimateTabs, AnimateTabsContent, AnimateTabsList, AnimateTabsTrigger } from "@/components/animate-ui/components/animate/tabs"
+import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple"
 import { ShareButton } from "@/components/animate-ui/components/community/share-button"
 import { UserPresenceAvatar } from "@/components/animate-ui/components/community/user-presence-avatar"
+import { OtpVerificationDialog } from "@/components/auth/otp-verification-dialog"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
+import { PageSkeletonOverlay } from "@/components/ui/page-skeleton-overlay"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { getAuthRedirectOrigin } from "@/lib/auth/get-auth-redirect-origin"
-import { ChevronDown, Eye, EyeOff } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
-const AUTH_COOKIE_SYNC_ATTEMPTS = 8
-const AUTH_COOKIE_SYNC_DELAY_MS = 120
+const RESEND_COOLDOWN_SECONDS = 120
+const LOGIN_COOLDOWN_UNTIL_KEY = "auth_login_otp_cooldown_until"
+const LOGIN_COOLDOWN_EMAIL_KEY = "auth_login_otp_cooldown_email"
 
 function GoogleIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -60,13 +61,15 @@ function LoginPageContent() {
   const searchParams = useSearchParams()
 
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
-  const [activeTab, setActiveTab] = useState("account")
-  const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; general?: string }>({})
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [cooldownExpiresAt, setCooldownExpiresAt] = useState<number | null>(null)
+  const [cooldownRemaining, setCooldownRemaining] = useState(0)
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false)
+  const [otpEmail, setOtpEmail] = useState("")
+  const [otpError, setOtpError] = useState<string | null>(null)
+  const [otpVerifying, setOtpVerifying] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
 
@@ -77,21 +80,59 @@ function LoginPageContent() {
     return supabaseRef.current
   }
 
-  const waitForSessionPersistence = async (expectedUserId?: string) => {
-    const supabase = getSupabaseClient()
-    for (let attempt = 0; attempt < AUTH_COOKIE_SYNC_ATTEMPTS; attempt += 1) {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+  useEffect(() => {
+    if (typeof window === "undefined") return
 
-      if (session?.user && (!expectedUserId || session.user.id === expectedUserId)) {
-        return true
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, AUTH_COOKIE_SYNC_DELAY_MS))
+    const storedEmail = window.localStorage.getItem(LOGIN_COOLDOWN_EMAIL_KEY)
+    if (storedEmail) {
+      setOtpEmail(storedEmail)
+      setEmail((current) => current || storedEmail)
     }
 
-    return false
+    const rawExpiresAt = window.localStorage.getItem(LOGIN_COOLDOWN_UNTIL_KEY)
+    if (!rawExpiresAt) return
+
+    const parsedExpiresAt = Number(rawExpiresAt)
+    if (!Number.isFinite(parsedExpiresAt) || parsedExpiresAt <= Date.now()) {
+      window.localStorage.removeItem(LOGIN_COOLDOWN_UNTIL_KEY)
+      window.localStorage.removeItem(LOGIN_COOLDOWN_EMAIL_KEY)
+      return
+    }
+
+    setCooldownExpiresAt(parsedExpiresAt)
+    setCooldownRemaining(Math.max(0, Math.ceil((parsedExpiresAt - Date.now()) / 1000)))
+  }, [])
+
+  useEffect(() => {
+    if (cooldownExpiresAt === null) return
+
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((cooldownExpiresAt - Date.now()) / 1000))
+      setCooldownRemaining(remaining)
+
+      if (remaining <= 0) {
+        setCooldownExpiresAt(null)
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(LOGIN_COOLDOWN_UNTIL_KEY)
+          window.localStorage.removeItem(LOGIN_COOLDOWN_EMAIL_KEY)
+        }
+      }
+    }
+
+    updateRemaining()
+    const interval = window.setInterval(updateRemaining, 1000)
+    return () => window.clearInterval(interval)
+  }, [cooldownExpiresAt])
+
+  const startCooldownForEmail = (targetEmail: string) => {
+    const expiresAt = Date.now() + RESEND_COOLDOWN_SECONDS * 1000
+    setCooldownExpiresAt(expiresAt)
+    setCooldownRemaining(RESEND_COOLDOWN_SECONDS)
+    setOtpEmail(targetEmail)
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LOGIN_COOLDOWN_UNTIL_KEY, String(expiresAt))
+      window.localStorage.setItem(LOGIN_COOLDOWN_EMAIL_KEY, targetEmail)
+    }
   }
 
   useEffect(() => {
@@ -118,7 +159,7 @@ function LoginPageContent() {
 
     if (confirmed === "true" || signup === "success" || type === "signup") {
       setSuccessMessage(
-        "Your account has been successfully verified! Please sign in with your credentials to continue."
+        "Your account has been successfully verified! Enter your email to receive a verification code."
       )
     }
 
@@ -139,7 +180,7 @@ function LoginPageContent() {
 
       if (hashType === "signup" || hashParams.has("access_token")) {
         setSuccessMessage(
-          "Your account has been successfully verified! Please sign in with your credentials to continue."
+          "Your account has been successfully verified! Enter your email to receive a verification code."
         )
       }
     }
@@ -173,55 +214,89 @@ function LoginPageContent() {
     setLoading(true)
     setErrors({})
     setSuccessMessage(null)
+    setOtpVerifying(false)
+    setOtpError(null)
 
-    if (!email || !password) {
-      setActiveTab(!email ? "account" : "password")
-      setErrors({ general: "Email and password are required" })
+    const normalizedEmail = email.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const resendLocked = cooldownRemaining > 0
+    const securityCooldownMessage = `For security purposes, you can only request this after ${cooldownRemaining} seconds.`
+
+    if (resendLocked) {
+      setErrors({ general: securityCooldownMessage })
+      setLoading(false)
+      return
+    }
+
+    if (!normalizedEmail) {
+      setErrors({ email: "Email is required" })
+      setLoading(false)
+      return
+    }
+
+    if (!emailRegex.test(normalizedEmail)) {
+      setErrors({ email: "Please enter a valid email address" })
       setLoading(false)
       return
     }
 
     try {
       const supabase = getSupabaseClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          shouldCreateUser: false,
+        },
       })
 
       if (error) {
-        if (error.message.toLowerCase().includes("email not confirmed")) {
-          setErrors({
-            general: "Your email is not verified yet. Please click the confirmation link from your inbox first.",
-          })
+        const normalizedError = error.message.toLowerCase()
+        if (normalizedError.includes("signups not allowed")) {
+          setErrors({ general: "No account found for this email. Please sign up first." })
           setLoading(false)
           return
         }
-
-        setErrors({ general: error.message })
+        setErrors({ general: error.message || "Could not send verification code. Please try again." })
         setLoading(false)
         return
       }
 
-      if (!data.session) {
-        setErrors({ general: "Sign-in session could not be created. Please try again." })
-        setLoading(false)
-        return
-      }
-
-      const sessionPersisted = await waitForSessionPersistence(data.user?.id)
-      if (!sessionPersisted) {
-        setErrors({ general: "Sign-in succeeded, but session sync is delayed. Please try again." })
-        setLoading(false)
-        return
-      }
-
-      // Force a full navigation so middleware reads the freshly written auth cookies.
-      window.location.assign("/dashboard")
+      startCooldownForEmail(normalizedEmail)
+      setOtpDialogOpen(true)
+      setSuccessMessage(`We sent a 6-digit verification code to ${normalizedEmail}.`)
     } catch (err: any) {
       setErrors({ general: "An unexpected error occurred. Please try again." })
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleOtpDialogOpenChange = (open: boolean) => {
+    if (!open && otpVerifying) return
+    setOtpDialogOpen(open)
+    if (!open) {
+      setOtpError(null)
+      setOtpVerifying(false)
+    }
+  }
+
+  const handleOtpComplete = (code: string) => {
+    if (!otpEmail) {
+      setOtpError("Please request a new verification code.")
+      return
+    }
+
+    setOtpVerifying(true)
+    setOtpError(null)
+
+    const confirmParams = new URLSearchParams()
+    confirmParams.set("token", code)
+    confirmParams.set("email", otpEmail)
+    confirmParams.set("next", "/dashboard")
+    confirmParams.set("error_redirect", "/login")
+    window.requestAnimationFrame(() => {
+      window.location.assign(`/auth/confirm?${confirmParams.toString()}`)
+    })
   }
 
   const handleGoogleSignIn = async () => {
@@ -246,7 +321,9 @@ function LoginPageContent() {
       }
 
       if (data.url) {
-        window.location.assign(data.url)
+        window.requestAnimationFrame(() => {
+          window.location.assign(data.url)
+        })
         return
       }
 
@@ -257,14 +334,38 @@ function LoginPageContent() {
     }
   }
 
-  const tabDescription =
-    activeTab === "account"
-      ? "Fill in your business details to get started."
-      : "Your password should be at least 8 characters, consisting of letters, at least one number and at least one special character."
+  const handleEnterVerification = () => {
+    const normalizedEmail = (otpEmail || email).trim().toLowerCase()
+    if (!normalizedEmail) {
+      setErrors({ email: "Email is required" })
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(normalizedEmail)) {
+      setErrors({ email: "Please enter a valid email address" })
+      return
+    }
+
+    setOtpEmail(normalizedEmail)
+    setOtpError(null)
+    setOtpVerifying(false)
+    setOtpDialogOpen(true)
+  }
+
+  const tabDescription = "Enter your email to receive a verification code."
+  const isResendLocked = cooldownRemaining > 0
+  const securityCooldownMessage = `For security purposes, you can only request this after ${cooldownRemaining} seconds.`
+  const sendButtonLabel = loading
+    ? "Sending Verification Code..."
+    : isResendLocked
+      ? `Send Verification Code (${cooldownRemaining}s)`
+      : "Send Verification Code"
+  const showAuthLoader = loading || googleLoading || otpVerifying
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
-      <FluidCursor className="z-0" />
+      <FluidCursor className="hidden sm:block z-0" />
       <header className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-1.5">
@@ -348,74 +449,23 @@ function LoginPageContent() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <AnimateTabs value={activeTab} onValueChange={setActiveTab}>
-                  <AnimateTabsList className="grid-cols-2 w-full">
-                    <AnimateTabsTrigger value="account">Account</AnimateTabsTrigger>
-                    <AnimateTabsTrigger value="password">Password</AnimateTabsTrigger>
-                  </AnimateTabsList>
-
-                  <AnimateTabsContent value="account" className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="business@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={errors.email ? "border-destructive" : ""}
-                      />
-                      {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                    </div>
-                  </AnimateTabsContent>
-
-                  <AnimateTabsContent value="password" className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className={errors.password ? "border-destructive pr-10" : "pr-10"}
-                        />
-                        <IconButton
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          hoverScale={1}
-                          tapScale={1}
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 leading-none"
-                        >
-                          <span className="inline-flex h-4 w-4 items-center justify-center">
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </span>
-                        </IconButton>
-                      </div>
-                      {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="remember"
-                            checked={rememberMe}
-                            onCheckedChange={(checked) => setRememberMe(checked)}
-                          />
-                          <Label htmlFor="remember" className="font-normal cursor-pointer text-sm">
-                            Remember me
-                          </Label>
-                        </div>
-                        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                          Forgot password?
-                        </Link>
-                      </div>
-                    </div>
-                  </AnimateTabsContent>
-                </AnimateTabs>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="business@email.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (errors.email) {
+                        setErrors((prev) => ({ ...prev, email: "" }))
+                      }
+                    }}
+                    className={errors.email ? "border-destructive" : ""}
+                  />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                </div>
 
                 {successMessage && (
                   <p className="text-sm text-green-600 text-center font-medium">
@@ -429,9 +479,35 @@ function LoginPageContent() {
                   </p>
                 )}
 
-                <LiquidButton type="submit" className="w-full py-3 text-lg" disabled={loading || googleLoading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                <LiquidButton type="submit" className="hidden w-full py-3 text-lg sm:inline-flex" disabled={loading || googleLoading || isResendLocked}>
+                  {sendButtonLabel}
                 </LiquidButton>
+                <RippleButton type="submit" className="w-full py-3 text-lg sm:hidden" disabled={loading || googleLoading || isResendLocked}>
+                  {sendButtonLabel}
+                  <RippleButtonRipples />
+                </RippleButton>
+                {isResendLocked && !otpDialogOpen && (
+                  <>
+                    <p className="text-center text-xs text-muted-foreground">{securityCooldownMessage}</p>
+                    <LiquidButton
+                      type="button"
+                      onClick={handleEnterVerification}
+                      className="hidden w-full py-2 text-sm sm:inline-flex"
+                      disabled={otpVerifying}
+                    >
+                      Enter Verification Code
+                    </LiquidButton>
+                    <RippleButton
+                      type="button"
+                      onClick={handleEnterVerification}
+                      className="w-full py-2 text-sm sm:hidden"
+                      disabled={otpVerifying}
+                    >
+                      Enter Verification Code
+                      <RippleButtonRipples />
+                    </RippleButton>
+                  </>
+                )}
 
                 <div className="relative py-1">
                   <div className="absolute inset-0 flex items-center">
@@ -445,12 +521,23 @@ function LoginPageContent() {
                 <LiquidButton
                   type="button"
                   onClick={handleGoogleSignIn}
-                  className="w-full py-3 text-lg border border-border/60"
+                  className="hidden w-full py-3 text-lg border border-border/60 sm:inline-flex"
                   disabled={loading || googleLoading}
                 >
                   <GoogleIcon className="mr-2 h-5 w-5 shrink-0" />
                   {googleLoading ? "Redirecting..." : "Sign in with Google"}
                 </LiquidButton>
+                <RippleButton
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleSignIn}
+                  className="w-full py-3 text-lg border border-border/60 sm:hidden"
+                  disabled={loading || googleLoading}
+                >
+                  <GoogleIcon className="mr-2 h-5 w-5 shrink-0" />
+                  {googleLoading ? "Redirecting..." : "Sign in with Google"}
+                  <RippleButtonRipples />
+                </RippleButton>
               </form>
 
               <div className="mt-6 text-center text-sm">
@@ -468,6 +555,15 @@ function LoginPageContent() {
           <p>&copy; 2026 StepPay Incorporated. All rights reserved.</p>
         </div>
       </footer>
+      <PageSkeletonOverlay visible={showAuthLoader} variant="auth" />
+      <OtpVerificationDialog
+        email={otpEmail}
+        error={otpError}
+        isVerifying={otpVerifying}
+        onComplete={handleOtpComplete}
+        onOpenChange={handleOtpDialogOpenChange}
+        open={otpDialogOpen}
+      />
     </div>
   )
 }
