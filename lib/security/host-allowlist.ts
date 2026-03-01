@@ -32,6 +32,28 @@ function hostMatchesPattern(hostname: string, pattern: string) {
   return hostname === normalizedPattern
 }
 
+function isVercelHost(hostname: string) {
+  return hostname.endsWith(".vercel.app")
+}
+
+function matchesVercelProjectHost(hostname: string, allowedPatterns: string[]) {
+  if (!isVercelHost(hostname)) return false
+
+  const allowedVercelHosts = allowedPatterns
+    .filter((pattern) => !pattern.includes("*") && isVercelHost(pattern))
+
+  return allowedVercelHosts.some((allowedHost) => {
+    if (hostname === allowedHost) return true
+
+    const projectSlug = allowedHost.split(".")[0]
+    if (!projectSlug) return false
+
+    // Allow Vercel preview domains for the same project slug:
+    // e.g. project.vercel.app -> project-git-main-user.vercel.app
+    return hostname.startsWith(`${projectSlug}-`)
+  })
+}
+
 function collectAllowedHostPatterns() {
   const patterns = new Set<string>()
 
@@ -65,5 +87,13 @@ export function isRequestHostAllowed(hostHeader: string | null | undefined) {
     return true
   }
 
-  return allowedPatterns.some((pattern) => hostMatchesPattern(hostname, pattern))
+  if (allowedPatterns.some((pattern) => hostMatchesPattern(hostname, pattern))) {
+    return true
+  }
+
+  if (matchesVercelProjectHost(hostname, allowedPatterns)) {
+    return true
+  }
+
+  return false
 }
