@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, Circle, ArrowRight } from "lucide-react"
+import { Check, CheckCircle2, Circle, ArrowRight } from "lucide-react"
 
 const steps = [
   { id: "profile", name: "Profile", href: "/dashboard/compliance/profile" },
   { id: "contact", name: "Contact", href: "/dashboard/compliance/contact" },
   { id: "owner", name: "Owner", href: "/dashboard/compliance/owner" },
   { id: "account", name: "Account", href: "/dashboard/compliance/account" },
-  { id: "service-agreement", name: "Service Agreement", href: "/dashboard/compliance/service-agreement" },
+  { id: "service-agreement", name: "Agreement", href: "/dashboard/compliance/service-agreement" },
 ]
 
 export default function CompliancePage() {
@@ -69,9 +69,9 @@ export default function CompliancePage() {
     <div className="space-y-6 pt-6">
       <Card>
         <CardHeader>
-          <CardTitle>Compliance Checklist</CardTitle>
+          <CardTitle>Business Verification Checklist</CardTitle>
           <CardDescription>
-            Please complete all steps to become fully compliant
+            Please complete all steps to complete business verification
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,7 +86,9 @@ export default function CompliancePage() {
                 >
                   <div className="flex items-center space-x-4">
                     {isCompleted ? (
-                      <CheckCircle2 className="h-6 w-6 text-green-600" />
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-white text-black dark:border-white/15 dark:bg-black dark:text-white">
+                        <Check className="h-4 w-4" />
+                      </span>
                     ) : (
                       <Circle className="h-6 w-6 text-muted-foreground" />
                     )}
@@ -109,7 +111,7 @@ export default function CompliancePage() {
           {!allCompleted && (
             <div className="mt-6 pt-6 border-t border-border">
               <Button onClick={handleStart} className="w-full" size="lg">
-                Start Compliance Process
+                Start Business Verification
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -117,7 +119,7 @@ export default function CompliancePage() {
 
           {allCompleted && (
             <div className="mt-6 pt-6 border-t border-border">
-              <div className="flex items-center justify-center space-x-2 text-green-600">
+              <div className="flex items-center justify-center space-x-2 text-foreground">
                 <CheckCircle2 className="h-5 w-5" />
                 <span className="font-medium">
                   All steps completed. Your account is compliant.

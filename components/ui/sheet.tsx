@@ -74,18 +74,20 @@ function SheetContent({
   animationPreset = "default",
   className,
   children,
+  showOverlay = true,
   showCloseButton = true,
   closeButtonClassName,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   side?: SheetSide
   animationPreset?: SheetAnimationPreset
+  showOverlay?: boolean
   showCloseButton?: boolean
   closeButtonClassName?: string
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      {showOverlay ? <SheetOverlay /> : null}
       <DialogPrimitive.Content
         data-slot="sheet-content"
         className={cn(

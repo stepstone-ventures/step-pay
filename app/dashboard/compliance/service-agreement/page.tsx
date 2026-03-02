@@ -271,7 +271,7 @@ Date: ${new Date().toLocaleDateString()}
                 <CardTitle>Service Agreement</CardTitle>
                 <CardDescription>Merchant Service Agreement details</CardDescription>
               </div>
-              <div className="flex items-center space-x-2 text-green-600">
+              <div className="flex items-center space-x-2 text-foreground">
                 <CheckCircle2 className="h-5 w-5" />
                 <span className="text-sm font-medium">Completed</span>
               </div>
@@ -314,7 +314,7 @@ Date: ${new Date().toLocaleDateString()}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-green-600">
+            <div className="flex items-center space-x-2 text-foreground">
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">Merchant Service Agreement Accepted</span>
             </div>

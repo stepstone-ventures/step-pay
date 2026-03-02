@@ -376,7 +376,7 @@ export default function SendPaymentPage() {
                 ) : null}
                 {recipient ? (
                   <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/5 px-3 py-2 text-xs">
-                    <p className="flex items-center gap-1 font-medium text-emerald-700">
+                    <p className="flex items-center gap-1 font-medium text-foreground">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Recipient verified
                     </p>

@@ -113,7 +113,7 @@ export default function SubaccountsPage() {
       newErrors.currency = "Currency is required"
     }
     if (!newSubaccount.type) {
-      newErrors.type = "Type of subaccount is required"
+      newErrors.type = "Type of split account is required"
     }
     if (newSubaccount.type === "Bank") {
       if (!newSubaccount.bankName) {
@@ -131,7 +131,7 @@ export default function SubaccountsPage() {
       }
     }
     if (!newSubaccount.name.trim()) {
-      newErrors.name = "Name of subaccount is required"
+      newErrors.name = "Name of split account is required"
     }
     if (!newSubaccount.yourShare.trim()) {
       newErrors.yourShare = "Your share percentage is required"
@@ -142,7 +142,7 @@ export default function SubaccountsPage() {
       }
     }
     if (!newSubaccount.subaccountShare.trim()) {
-      newErrors.subaccountShare = "Subaccount share percentage is required"
+      newErrors.subaccountShare = "Split account share percentage is required"
     } else {
       const subaccountShareNum = parseFloat(newSubaccount.subaccountShare)
       if (isNaN(subaccountShareNum) || subaccountShareNum < 0 || subaccountShareNum > 100) {
@@ -204,11 +204,11 @@ export default function SubaccountsPage() {
           </div>
 
           <div className="flex-1 space-y-2 min-w-[200px]">
-            <Label>Search Subaccounts</Label>
+            <Label>Search Split Accounts</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or account number..."
+                placeholder="Search split accounts by name or account number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-10"
@@ -226,7 +226,7 @@ export default function SubaccountsPage() {
               onClick={() => setShowAddSubaccount(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add New Subaccount
+              Add Split Account
             </Button>
           </div>
         </div>
@@ -235,22 +235,22 @@ export default function SubaccountsPage() {
       {/* Subaccounts Table or Empty State */}
       <Card>
         <CardHeader>
-          <CardTitle>All Subaccounts ({sortedAndFiltered.length})</CardTitle>
+          <CardTitle>All Split Accounts ({sortedAndFiltered.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {sortedAndFiltered.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Subaccounts found</h3>
+              <h3 className="text-lg font-semibold mb-2">No Split Accounts found</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                The Split Payments feature on Paystack allows you to split money received from a transaction across multiple accounts. We call these accounts "subaccounts".
+                The Split Payments feature on Paystack allows you to split money received from a transaction across multiple accounts.
               </p>
               <Button 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={() => setShowAddSubaccount(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Add New Subaccount
+                Add Split Account
               </Button>
             </div>
           ) : (
@@ -296,9 +296,9 @@ export default function SubaccountsPage() {
       <Dialog open={showAddSubaccount} onOpenChange={setShowAddSubaccount}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Subaccount</DialogTitle>
+            <DialogTitle>Add Split Account</DialogTitle>
             <DialogDescription>
-              Create a new subaccount to receive split payments
+              Create a split account to receive split payments
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -450,7 +450,7 @@ export default function SubaccountsPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">Name of Subaccount *</Label>
+              <Label htmlFor="name">Name of Split Account *</Label>
               <Input
                 id="name"
                 placeholder="Enter subaccount name"
@@ -489,7 +489,7 @@ export default function SubaccountsPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subaccountShare">Subaccount gets (%)</Label>
+                  <Label htmlFor="subaccountShare">Split account gets (%)</Label>
                   <Input
                     id="subaccountShare"
                     type="number"

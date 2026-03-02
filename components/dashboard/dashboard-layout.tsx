@@ -37,6 +37,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
+      <div className="pointer-events-none fixed inset-x-0 top-[81px] z-[45] border-t border-sidebar-hover/70" />
       <div className="dashboard-static-cards relative z-10 flex min-h-screen overflow-hidden">
         <Sidebar mobileOpen={mobileMenuOpen} setMobileOpen={setMobileMenuOpen} />
 

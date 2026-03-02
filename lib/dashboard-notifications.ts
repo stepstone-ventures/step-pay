@@ -55,7 +55,7 @@ export function buildDashboardNotifications({
     notifications.unshift(
       {
         id: `compliance-progress-${complianceProgress}`,
-        title: `Compliance checklist: ${complianceProgress}/${COMPLIANCE_TOTAL_STEPS} completed`,
+        title: `Business Verification checklist: ${complianceProgress}/${COMPLIANCE_TOTAL_STEPS} completed`,
         subtitle: "Finish all steps to unlock full account access.",
         count: complianceProgress,
         time: "Action required",
@@ -63,7 +63,7 @@ export function buildDashboardNotifications({
       },
       {
         id: "compliance-required",
-        title: "Complete Compliance checklist to begin making transactions.",
+        title: "Complete Business Verification checklist to begin making transactions.",
         time: "Action required",
         sortOrder: 90,
       }
@@ -71,7 +71,7 @@ export function buildDashboardNotifications({
   } else {
     notifications.unshift({
       id: "compliance-complete",
-      title: "Compliance complete: 5/5 steps approved.",
+      title: "Business Verification complete: 5/5 steps approved.",
       subtitle: "You now have full transaction access.",
       time: "Completed",
       sortOrder: 80,

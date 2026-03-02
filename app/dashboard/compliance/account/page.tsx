@@ -372,7 +372,7 @@ export default function AccountPage() {
                     <CardTitle>Account Information</CardTitle>
                     <CardDescription>Card, bank, or mobile money account details</CardDescription>
                   </div>
-                  <div className="flex items-center space-x-2 text-green-600">
+                  <div className="flex items-center space-x-2 text-foreground">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="text-sm font-medium">Completed</span>
                   </div>
@@ -444,7 +444,7 @@ export default function AccountPage() {
                     Edit
                   </Button>
                   <Button onClick={handleNext}>
-                    Next: Service Agreement
+                    Next: Agreement
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>

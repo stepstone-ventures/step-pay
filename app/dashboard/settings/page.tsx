@@ -246,7 +246,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 pt-6">
       {statusMessage ? (
-        <div className="rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-700">
+        <div className="rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2 text-sm text-foreground">
           {statusMessage}
         </div>
       ) : null}

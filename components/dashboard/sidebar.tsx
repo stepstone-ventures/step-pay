@@ -17,6 +17,7 @@ import {
   RotateCcw,
   SendHorizontal,
   ShoppingBag,
+  Split,
   Store,
   Users,
   Wallet,
@@ -33,7 +34,7 @@ import { SidebarRouteLoader } from "@/components/dashboard/sidebar-route-loader"
 const pinnedNavigation = [
   {
     id: "compliance",
-    name: "Compliance",
+    name: "Verification",
     href: "/dashboard/compliance",
     icon: ListIcon,
     clickAnimation: "default",
@@ -56,6 +57,16 @@ const pinnedNavigation = [
 
 const sectionNavigation = [
   {
+    name: "COMMERCE",
+    children: [
+      { name: "Payment Pages", href: "/dashboard/payment-pages", icon: FileText },
+      { name: "Products", href: "/dashboard/products", icon: Package },
+      { name: "Storefronts", href: "/dashboard/storefronts", icon: Store },
+      { name: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
+      { name: "Invoices", href: "/dashboard/invoices", icon: Receipt },
+    ],
+  },
+  {
     name: "PAYMENTS",
     children: [
       { name: "Transactions", href: "/dashboard/transactions", icon: CreditCard },
@@ -63,6 +74,7 @@ const sectionNavigation = [
       { name: "Send Payment", href: "/dashboard/send-payment", icon: SendHorizontal },
       { name: "Pending", href: "/dashboard/payouts", icon: Wallet },
       { name: "Refunds", href: "/dashboard/refunds", icon: RotateCcw },
+      { name: "Split Accounts", href: "/dashboard/subaccounts", icon: Split },
     ],
   },
   {
@@ -71,16 +83,6 @@ const sectionNavigation = [
       { name: "Subscribers", href: "/dashboard/subscribers", icon: Users },
       { name: "Plans", href: "/dashboard/plans", icon: Calendar },
       { name: "Subscriptions", href: "/dashboard/subscriptions", icon: Repeat },
-    ],
-  },
-  {
-    name: "COMMERCE",
-    children: [
-      { name: "Payment Pages", href: "/dashboard/payment-pages", icon: FileText },
-      { name: "Products", href: "/dashboard/products", icon: Package },
-      { name: "Storefronts", href: "/dashboard/storefronts", icon: Store },
-      { name: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
-      { name: "Invoices", href: "/dashboard/invoices", icon: Receipt },
     ],
   },
 ]
@@ -189,7 +191,7 @@ export function Sidebar({
 
   const sidebarContent = (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="h-[81px] shrink-0 border-b border-sidebar-hover/70 px-3">
+      <div className="h-[81px] shrink-0 px-3">
         <div className="flex h-full items-center justify-between">
           <Link href="/dashboard" onClick={() => navigateFromSidebar("/dashboard")} className="flex items-center space-x-1.5">
             <div className="relative h-10 w-14">
@@ -253,7 +255,7 @@ export function Sidebar({
                     />
                     {item.name}
                   </span>
-                  {item.name === "Compliance" ? (
+                  {item.id === "compliance" ? (
                     isComplianceComplete ? (
                       <Check className="h-4 w-4 shrink-0" />
                     ) : (

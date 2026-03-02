@@ -165,7 +165,9 @@ export default function Home() {
               </div>
               <span className="text-lg font-semibold tracking-tight">StepPay</span>
             </Link>
-            <MobileTopMenu contactSalesAsMenuRow />
+            <div className="flex items-center gap-2">
+              <MobileTopMenu contactSalesAsMenuRow />
+            </div>
           </div>
         </header>
 
@@ -420,6 +422,37 @@ export default function Home() {
               </p>
             </CardContent>
           </AnimatedCard>
+        </div>
+      </section>
+
+      <section className="hidden lg:block container mx-auto px-4 pt-24 pb-36 relative z-10">
+        <div className="mx-auto flex items-stretch justify-center gap-4">
+          <div className="h-[32rem] w-[51.4rem] overflow-hidden rounded-2xl border border-border/60">
+            <video
+              src="/CEO.mov"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              tabIndex={-1}
+              className="pointer-events-none block h-full w-full object-cover object-center"
+            />
+          </div>
+          <div className="h-[32rem] w-[17.9rem] overflow-hidden rounded-2xl border border-border/60">
+            <video
+              src="/Card.mov"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              tabIndex={-1}
+              className="pointer-events-none block h-full w-full object-cover object-center"
+            />
+          </div>
         </div>
       </section>
 

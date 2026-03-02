@@ -60,7 +60,7 @@ export function MultiStepLoader({
                     <span
                       className={cn(
                         'flex h-5 w-5 items-center justify-center rounded-full border text-[10px]',
-                        completed && 'border-emerald-500/50 text-emerald-600',
+                        completed && 'border-emerald-500/50 text-foreground',
                         active && 'border-primary/50 text-primary',
                         !completed && !active && 'border-muted-foreground/40 text-muted-foreground',
                       )}

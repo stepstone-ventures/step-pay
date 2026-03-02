@@ -216,7 +216,7 @@ export default function OwnerPage() {
                 <CardTitle>Owner Information</CardTitle>
                 <CardDescription>Owner details and identification</CardDescription>
               </div>
-              <div className="flex items-center space-x-2 text-green-600">
+              <div className="flex items-center space-x-2 text-foreground">
                 <CheckCircle2 className="h-5 w-5" />
                 <span className="text-sm font-medium">Completed</span>
               </div>

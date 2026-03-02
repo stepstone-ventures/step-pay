@@ -41,14 +41,15 @@ const pageTitles: Record<string, string> = {
   "/dashboard/storefronts": "Storefronts",
   "/dashboard/orders": "Orders",
   "/dashboard/invoices": "Invoices",
+  "/dashboard/subaccounts": "Split Accounts",
   "/dashboard/settings": "Settings",
   "/dashboard/payments": "Collect Payment",
-  "/dashboard/compliance": "Compliance",
-  "/dashboard/compliance/profile": "Compliance",
-  "/dashboard/compliance/contact": "Compliance",
-  "/dashboard/compliance/owner": "Compliance",
-  "/dashboard/compliance/account": "Compliance",
-  "/dashboard/compliance/service-agreement": "Compliance",
+  "/dashboard/compliance": "Business Verification",
+  "/dashboard/compliance/profile": "Business Verification",
+  "/dashboard/compliance/contact": "Business Verification",
+  "/dashboard/compliance/owner": "Business Verification",
+  "/dashboard/compliance/account": "Business Verification",
+  "/dashboard/compliance/service-agreement": "Business Verification",
 }
 
 type SharePlatform = {
@@ -127,17 +128,17 @@ export function GlobalUI({
     if (pageTitles[pathname]) return pageTitles[pathname]
 
     if (pathname?.startsWith("/dashboard/compliance")) {
-      if (pathname === "/dashboard/compliance") return "Compliance"
+      if (pathname === "/dashboard/compliance") return "Business Verification"
 
       const stepMap: Record<string, string> = {
         "/dashboard/compliance/profile": "1. Profile",
         "/dashboard/compliance/contact": "2. Contact",
         "/dashboard/compliance/owner": "3. Owner",
         "/dashboard/compliance/account": "4. Account",
-        "/dashboard/compliance/service-agreement": "5. Service Agreement",
+        "/dashboard/compliance/service-agreement": "5. Agreement",
       }
 
-      return stepMap[pathname] || "Compliance"
+      return stepMap[pathname] || "Business Verification"
     }
 
     return "Dashboard"
@@ -318,7 +319,8 @@ export function GlobalUI({
     <>
       <div
         className={cn(
-          "fixed top-0 right-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm",
+          "fixed top-0 right-0 z-40",
+          assistantOpen ? "bg-background" : "bg-background/95 backdrop-blur-sm",
           "left-0 md:left-64"
         )}
       >
@@ -340,7 +342,7 @@ export function GlobalUI({
 
           <div className="flex items-center gap-3">
           <ThemeTogglerButton variant="secondary" size="default" className="border border-border/60" />
-          <HaloAssistantButton className="hidden md:flex" onClick={() => setAssistantOpen(true)} />
+          <HaloAssistantButton className="flex" onClick={() => setAssistantOpen(true)} />
 
           <DropdownMenu
             open={accountMenuOpen}
@@ -469,7 +471,7 @@ export function GlobalUI({
                         </p>
                       ) : null}
                       {stepTagError ? <p className="text-[11px] text-destructive">{stepTagError}</p> : null}
-                      {stepTagSuccess ? <p className="text-[11px] text-emerald-600">{stepTagSuccess}</p> : null}
+                      {stepTagSuccess ? <p className="text-[11px] text-foreground">{stepTagSuccess}</p> : null}
                     </div>
                   </motion.div>
                 ) : null}
@@ -535,11 +537,12 @@ export function GlobalUI({
           </div>
         </div>
       </div>
-      <Sheet open={assistantOpen} onOpenChange={setAssistantOpen}>
+      <Sheet open={assistantOpen} onOpenChange={setAssistantOpen} modal={false}>
         <SheetContent
           side="right"
+          showOverlay={false}
           showCloseButton={false}
-          className="w-[88vw] max-w-sm border-l border-border/70 bg-background p-6 md:w-1/3 md:max-w-none md:p-8"
+          className="inset-y-auto top-[81px] z-30 h-[calc(100vh-81px)] w-[88vw] max-w-none border-l border-border/70 bg-zinc-100 p-6 dark:bg-zinc-900 md:w-[33.333vw] md:p-8"
         >
           <VanishInput
             className="mt-10 w-full max-w-none"

@@ -502,7 +502,7 @@ function LoginPageContent() {
                 </div>
 
                 {successMessage && (
-                  <p className="text-sm text-green-600 text-center font-medium">
+                  <p className="text-sm text-foreground text-center font-medium">
                     {successMessage}
                   </p>
                 )}
