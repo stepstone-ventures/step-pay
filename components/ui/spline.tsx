@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { useProtectedComponentEnabled } from "@/lib/security/client-component-guard"
 
 type SplineEventName =
   | "mouseDown"
@@ -102,8 +101,10 @@ async function loadSplineRuntime(): Promise<SplineAppCtor> {
 
   if (!window.__splineRuntimePromise) {
     window.__splineRuntimePromise = (async () => {
-      const runtimeImport = (url: string) =>
-        import(/* webpackIgnore: true */ url) as Promise<{
+      const runtimeImport = new Function(
+        "url",
+        "return import(/* webpackIgnore: true */ url)"
+      ) as (url: string) => Promise<{
         Application?: SplineAppCtor
         default?: { Application?: SplineAppCtor }
       }>
@@ -184,9 +185,6 @@ export function Spline({
   onSplineScroll,
   ...props
 }: SplineProps) {
-  const componentEnabled = useProtectedComponentEnabled()
-  if (!componentEnabled) return null
-
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
   const appRef = React.useRef<SplineApp | null>(null)
