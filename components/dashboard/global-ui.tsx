@@ -44,12 +44,12 @@ const pageTitles: Record<string, string> = {
   "/dashboard/subaccounts": "Split Accounts",
   "/dashboard/settings": "Settings",
   "/dashboard/payments": "Collect Payment",
-  "/dashboard/compliance": "Business Verification",
-  "/dashboard/compliance/profile": "Business Verification",
-  "/dashboard/compliance/contact": "Business Verification",
-  "/dashboard/compliance/owner": "Business Verification",
-  "/dashboard/compliance/account": "Business Verification",
-  "/dashboard/compliance/service-agreement": "Business Verification",
+  "/dashboard/compliance": "Verification",
+  "/dashboard/compliance/profile": "Verification",
+  "/dashboard/compliance/contact": "Verification",
+  "/dashboard/compliance/owner": "Verification",
+  "/dashboard/compliance/account": "Verification",
+  "/dashboard/compliance/service-agreement": "Verification",
 }
 
 type SharePlatform = {
@@ -128,7 +128,7 @@ export function GlobalUI({
     if (pageTitles[pathname]) return pageTitles[pathname]
 
     if (pathname?.startsWith("/dashboard/compliance")) {
-      if (pathname === "/dashboard/compliance") return "Business Verification"
+      if (pathname === "/dashboard/compliance") return "Verification"
 
       const stepMap: Record<string, string> = {
         "/dashboard/compliance/profile": "1. Profile",
@@ -138,7 +138,7 @@ export function GlobalUI({
         "/dashboard/compliance/service-agreement": "5. Agreement",
       }
 
-      return stepMap[pathname] || "Business Verification"
+      return stepMap[pathname] || "Verification"
     }
 
     return "Dashboard"

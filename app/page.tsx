@@ -429,7 +429,7 @@ export default function Home() {
         <div className="mx-auto flex items-stretch justify-center gap-4">
           <div className="h-[32rem] w-[51.4rem] overflow-hidden rounded-2xl border border-border/60">
             <video
-              src="/CEO.mov"
+              src="/CEO.mov?v=20260302"
               autoPlay
               loop
               muted
@@ -442,7 +442,7 @@ export default function Home() {
           </div>
           <div className="h-[32rem] w-[17.9rem] overflow-hidden rounded-2xl border border-border/60">
             <video
-              src="/Card.mov"
+              src="/Card.mov?v=20260302"
               autoPlay
               loop
               muted
