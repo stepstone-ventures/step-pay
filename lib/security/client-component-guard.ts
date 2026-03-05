@@ -6,6 +6,12 @@ function toLowerSafe(value: string) {
   return value.trim().toLowerCase()
 }
 
+const DEFAULT_ALLOWED_HOST_PATTERNS = [
+  "steppay.co",
+  "www.steppay.co",
+  "steppay.vercel.app",
+]
+
 function normalizeHost(value: string | null | undefined) {
   if (!value) return null
 
@@ -61,6 +67,7 @@ function matchesVercelProjectHost(hostname: string, allowedPatterns: string[]) {
 function collectClientAllowedHostPatterns() {
   const patterns = new Set<string>()
 
+  DEFAULT_ALLOWED_HOST_PATTERNS.forEach((pattern) => patterns.add(pattern))
   parseHostPatterns(process.env.NEXT_PUBLIC_ALLOWED_APP_HOSTS).forEach((pattern) => patterns.add(pattern))
 
   const siteHost = normalizeHost(process.env.NEXT_PUBLIC_SITE_URL)

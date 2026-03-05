@@ -15,8 +15,8 @@ If the app is copied to a different domain without updating these allowlists, pr
 
 Set one or both environment variables:
 
-- `ALLOWED_APP_HOSTS=steppay.vercel.app,app.steppay.com,*.steppay.com`
-- `NEXT_PUBLIC_ALLOWED_APP_HOSTS=steppay.vercel.app,app.steppay.com,*.steppay.com`
+- `ALLOWED_APP_HOSTS=steppay.co,www.steppay.co,steppay.vercel.app`
+- `NEXT_PUBLIC_ALLOWED_APP_HOSTS=steppay.co,www.steppay.co,steppay.vercel.app`
 
 To finish database hardening in Supabase, run the SQL below in the Supabase SQL Editor for your project.
 
