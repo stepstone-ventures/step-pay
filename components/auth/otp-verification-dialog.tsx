@@ -1,7 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { motion, useAnimationControls } from "framer-motion"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { VerificationCodeFace, type VerificationCodeFaceStatus } from "@/components/auth/verification-code-face"
 import { cn } from "@/lib/utils"
 
 const OTP_LENGTH = 6
@@ -32,16 +34,22 @@ export function OtpVerificationDialog({
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
   const [digits, setDigits] = useState<string[]>(emptyDigits)
   const [lastSubmittedCode, setLastSubmittedCode] = useState("")
+  const shakeControls = useAnimationControls()
 
   const joinedCode = useMemo(() => digits.join(""), [digits])
+  const faceStatus = useMemo<VerificationCodeFaceStatus>(() => {
+    if (error && joinedCode.length === OTP_LENGTH) return "wrong"
+    if (!error && isVerifying && joinedCode.length === OTP_LENGTH) return "correct"
+    return "inProgress"
+  }, [error, isVerifying, joinedCode.length])
 
-  const focusInput = (index: number) => {
+  const focusInput = useCallback((index: number) => {
     if (index < 0 || index >= OTP_LENGTH) return
     const input = inputRefs.current[index]
     if (!input) return
     input.focus()
     input.select()
-  }
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -67,6 +75,26 @@ export function OtpVerificationDialog({
       setLastSubmittedCode("")
     }
   }, [digits, lastSubmittedCode, open])
+
+  useEffect(() => {
+    if (!open || !error || joinedCode.length !== OTP_LENGTH) return
+
+    void shakeControls.start({
+      x: [0, 10, -10, 10, -10, 10, -10, 0],
+      transition: {
+        duration: 0.72,
+        ease: [0.35, 0.7, 0.5, 0.7],
+      },
+    })
+
+    const timeout = window.setTimeout(() => {
+      setDigits(emptyDigits())
+      setLastSubmittedCode("")
+      focusInput(0)
+    }, 1000)
+
+    return () => window.clearTimeout(timeout)
+  }, [error, focusInput, joinedCode.length, open, shakeControls])
 
   const updateDigits = (index: number, value: string) => {
     const sanitized = value.replace(/\D/g, "")
@@ -104,7 +132,15 @@ export function OtpVerificationDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex justify-center">
+          <VerificationCodeFace
+            currentCodeLength={joinedCode.length}
+            maxCodeLength={OTP_LENGTH}
+            status={faceStatus}
+          />
+        </div>
+
+        <motion.div animate={shakeControls} className="flex items-center justify-center gap-2">
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -171,7 +207,7 @@ export function OtpVerificationDialog({
               value={digit}
             />
           ))}
-        </div>
+        </motion.div>
 
         {isVerifying ? (
           <p className="text-center text-sm text-muted-foreground">Verifying code...</p>
