@@ -12,6 +12,10 @@ if (process.env.NODE_ENV === "production") {
   securityHeaders.push({ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" })
 }
 
+const framerEmbedHeaders = securityHeaders.map((header) =>
+  header.key === "X-Frame-Options" ? { ...header, value: "SAMEORIGIN" } : header
+)
+
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
@@ -25,6 +29,18 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        source: "/framer-hero/:path*",
+        headers: framerEmbedHeaders,
+      },
+      {
+        source: "/framer-card/:path*",
+        headers: framerEmbedHeaders,
+      },
+      {
+        source: "/framer-scratch/:path*",
+        headers: framerEmbedHeaders,
       },
     ]
   },

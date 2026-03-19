@@ -8,6 +8,7 @@ export interface MacbookProMockupProps extends SVGProps<SVGSVGElement> {
   width?: number
   height?: number
   src?: string
+  variant?: "silver" | "black"
   className?: string
 }
 
@@ -15,6 +16,7 @@ export function MacbookProMockup({
   width = 650,
   height = 400,
   src,
+  variant = "silver",
   className,
   ...props
 }: MacbookProMockupProps) {
@@ -23,6 +25,14 @@ export function MacbookProMockup({
   const innerShellId = `${idBase}-inner-shell`
   const baseSilverId = `${idBase}-base-silver`
   const clipPathId = `${idBase}-clip`
+  const isBlack = variant === "black"
+  const outerShellStops = isBlack ? ["#2b2b2b", "#1c1c1c", "#3a3a3a"] : ["#f8f9fb", "#b0b6bf", "#e6e9ee"]
+  const innerShellStops = isBlack ? ["#1f1f1f", "#0f0f0f", "#2a2a2a"] : ["#f0f2f5", "#9fa6b0", "#d7dbe1"]
+  const baseStops = isBlack ? ["#1d1d1d", "#0f0f0f", "#2a2a2a"] : ["#f5f6f8", "#b3b9c1", "#e6e9ee"]
+  const baseLight = isBlack ? "#2b2b2b" : "#e1e4e8"
+  const baseDark = isBlack ? "#101010" : "#8a9098"
+  const baseBar = isBlack ? "#141414" : "#3a3d42"
+  const trackColor = isBlack ? "#1a1a1a" : "#c3c7cd"
 
   return (
     <svg
@@ -60,7 +70,7 @@ export function MacbookProMockup({
         />
       ) : null}
 
-      <rect fill="#2d3035" x="69.09" y="350.51" width="512.11" height="12.48" />
+      <rect fill={baseBar} x="69.09" y="350.51" width="512.11" height="12.48" />
 
       <path
         fill="#0d0d0d"
@@ -77,41 +87,41 @@ export function MacbookProMockup({
       />
 
       <polygon
-        fill="#b9b9bb"
+        fill={baseLight}
         points="600.06 385.39 567.29 385.39 565.84 383.95 601.82 383.95 600.06 385.39"
       />
       <polygon
-        fill="#292929"
+        fill={baseDark}
         points="598.73 386.82 568.64 386.82 567.32 385.39 600.35 385.39 598.73 386.82"
       />
       <polygon
-        fill="#b9b9bb"
+        fill={baseLight}
         points="82.64 385.39 49.87 385.39 48.43 383.95 84.41 383.95 82.64 385.39"
       />
       <polygon
-        fill="#292929"
+        fill={baseDark}
         points="81.31 386.82 51.23 386.82 49.9 385.39 82.93 385.39 81.31 386.82"
       />
       <path
-        fill="#95979b"
+        fill={trackColor}
         d="M278.11,362.6h94.05c0,3.63-2.95,6.58-6.58,6.58h-80.89c-3.63,0-6.58-2.95-6.58-6.58h0Z"
       />
 
       <defs>
         <linearGradient id={outerShellId} x1="66.46" y1="13.18" x2="583.98" y2="362.89" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#dbdde1" />
-          <stop offset="0.48" stopColor="#bcc0c6" />
-          <stop offset="1" stopColor="#e6e8eb" />
+          <stop offset="0" stopColor={outerShellStops[0]} />
+          <stop offset="0.48" stopColor={outerShellStops[1]} />
+          <stop offset="1" stopColor={outerShellStops[2]} />
         </linearGradient>
         <linearGradient id={innerShellId} x1="67.59" y1="14.24" x2="582.78" y2="362.89" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#c8ccd2" />
-          <stop offset="0.5" stopColor="#a9afb7" />
-          <stop offset="1" stopColor="#d0d4d9" />
+          <stop offset="0" stopColor={innerShellStops[0]} />
+          <stop offset="0.5" stopColor={innerShellStops[1]} />
+          <stop offset="1" stopColor={innerShellStops[2]} />
         </linearGradient>
         <linearGradient id={baseSilverId} x1="19.04" y1="362.77" x2="630.96" y2="383.95" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#d8dadd" />
-          <stop offset="0.52" stopColor="#b7bcc2" />
-          <stop offset="1" stopColor="#e4e6e9" />
+          <stop offset="0" stopColor={baseStops[0]} />
+          <stop offset="0.52" stopColor={baseStops[1]} />
+          <stop offset="1" stopColor={baseStops[2]} />
         </linearGradient>
         <clipPath id={clipPathId}>
           <rect fill="#ffffff" x="74.52" y="21.32" width="501.22" height="323.85" rx="5" ry="5" />

@@ -162,11 +162,11 @@ type CityGlobeProps = {
 
 export function CityGlobe({ className }: CityGlobeProps) {
   const componentEnabled = useProtectedComponentEnabled()
-  if (!componentEnabled) return null
-
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
   const pixelRatio = BASE_CONFIG.devicePixelRatio
+
+  if (!componentEnabled) return null
 
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null)
   const globeRef = React.useRef<CobeInstance | null>(null)

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export:liquid-logo-video": "node scripts/export-liquid-logo-video.mjs"
+    "export:liquid-logo-video": "node scripts/export-liquid-logo-video.mjs",
+    "refresh:framer": "node scripts/refresh-framer-embeds.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

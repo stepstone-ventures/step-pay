@@ -14,14 +14,13 @@ import { RotatingText } from "@/components/animate-ui/primitives/texts/rotating"
 import { ShareButton } from "@/components/animate-ui/components/community/share-button"
 import { LiquidButton } from "@/components/ui/liquid-button"
 import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple"
-import { Tilt, TiltContent } from "@/components/animate-ui/primitives/effects/tilt"
 import { MobileTopMenu } from "@/components/site/mobile-top-menu"
 import { FluidCursor } from "@/components/ui/fluid-cursor"
 import { MacbookProMockup } from "@/components/ui/macbook-pro-mockup"
 import { CityGlobe } from "@/components/ui/city-globe"
+import { BotIcon } from "@/components/animate-ui/icons/bot"
 import {
   NfcFeatureIcon,
-  PhoneCallFeatureIcon,
   ChartLineFeatureIcon,
   LayersFeatureIcon,
 } from "@/components/ui/payment-feature-icons"
@@ -77,6 +76,7 @@ const MONO_LINK_COLUMNS = [
 ]
 
 const SPLINE_SCENE_URL = "https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+const VIRTUAL_CARDS_HEADING = "Centralize Your Virtual Cards in Your StepPay Account"
 const STEP_CARDS = [
   {
     id: 1,
@@ -170,7 +170,6 @@ export default function Home() {
             </div>
           </div>
         </header>
-
         <main className="px-6 py-10">
           <div className="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-md flex-col items-center justify-center gap-8 text-center">
             <h1 className="text-4xl font-semibold tracking-tight">
@@ -262,7 +261,18 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      <section className="hidden lg:block min-[1730px]:hidden mb-16">
+        <div className="w-full h-screen min-h-[800px] overflow-hidden">
+          <iframe
+            src="/framer-hero/index.html"
+            title="StepPay hero"
+            className="border-0 w-full h-full"
+          />
+        </div>
+      </section>
+
+      {/* Hero Section (Spline) */}
+
       <section className="container mx-auto px-4 pt-6 pb-24 text-center relative z-10">
         <div className="relative mx-auto mb-10 w-full max-w-5xl overflow-hidden rounded-lg bg-black/96">
           <div className="font-heading pointer-events-none absolute flex w-full flex-col items-center justify-center gap-2 p-8 text-center text-black dark:text-white">
@@ -289,7 +299,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4 Simple Steps Section */}
+      <section className="container mx-auto px-4 pb-16 relative z-10">
+        <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-muted/20">
+          <iframe
+            src="/framer-scratch/index.html"
+            title="StepPay scratch interaction"
+            className="h-[520px] w-full border-0 md:h-[600px]"
+            loading="lazy"
+          />
+        </div>
+      </section>
+
       <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
@@ -304,23 +324,23 @@ export default function Home() {
             >
               {STEP_CARDS.map((step) => (
                 <div key={step.id} className="w-full shrink-0 px-1">
-                  <Tilt className="w-full" maxTilt={9} perspective={900}>
-                    <TiltContent>
-                      <AnimatedCard delay={0.1} className="relative overflow-hidden hover:shadow-lg transition-all border-border/50">
-                        <BorderBeam duration={15} />
-                        <CardContent className="pt-6">
-                          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
-                            <span className="text-2xl font-bold text-primary">{step.id}</span>
-                          </div>
-                          <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">{step.title}</h3>
-                          <p className="text-muted-foreground leading-relaxed text-center text-sm">{step.description}</p>
-                          <div className="relative mt-4 flex h-[24rem] md:h-[28rem] lg:h-[32rem] w-full items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/20 px-4 sm:px-5 lg:px-6">
-                            <MacbookProMockup src={step.imageSrc} className="h-full w-auto max-w-full" />
-                          </div>
-                        </CardContent>
-                      </AnimatedCard>
-                    </TiltContent>
-                  </Tilt>
+                  <AnimatedCard
+                    delay={0.1}
+                    whileHover={undefined}
+                    className="relative overflow-hidden border-border/50"
+                  >
+                    <BorderBeam duration={15} />
+                    <CardContent className="pt-6">
+                      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                        <span className="text-2xl font-bold text-primary">{step.id}</span>
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2 tracking-tight text-center">{step.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed text-center text-sm">{step.description}</p>
+                      <div className="relative mt-4 flex h-[24rem] md:h-[28rem] lg:h-[32rem] w-full items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-muted/20 px-4 sm:px-5 lg:px-6">
+                        <MacbookProMockup src={step.imageSrc} variant="silver" className="h-full w-auto max-w-full" />
+                      </div>
+                    </CardContent>
+                  </AnimatedCard>
                 </div>
               ))}
             </div>
@@ -361,6 +381,23 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="hidden lg:block">
+        <div className="container mx-auto px-4 py-16">
+          <div className="mx-auto mb-10 max-w-4xl text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              {VIRTUAL_CARDS_HEADING}
+            </h2>
+          </div>
+          <div className="h-[900px] w-full overflow-hidden rounded-2xl border border-border/50 bg-background">
+            <iframe
+              src="/framer-card/index.html"
+              title="StepPay card experience"
+              className="h-full w-full border-0"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Payment Methods Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="text-center mb-12">
@@ -390,11 +427,11 @@ export default function Home() {
             <BorderBeam duration={15} />
             <CardContent className="pt-6">
               <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <PhoneCallFeatureIcon size={28} className="text-primary" />
+                <BotIcon size={28} className="text-primary" loop />
               </div>
-              <h3 className="text-xl font-semibold mb-2 tracking-tight">Mobile Money</h3>
+              <h3 className="text-xl font-semibold mb-2 tracking-tight">Artificial Intelligence</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Receive and make transactions across all networks via mobile money in eligible African countries.
+                Send, receive and manage payments instantly with StepPay AI, powered for seamless digital transactions worldwide.
               </p>
             </CardContent>
           </AnimatedCard>

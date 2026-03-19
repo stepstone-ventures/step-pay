@@ -10,6 +10,7 @@ type PresenceUser = {
   name: string;
   src: string;
   active?: boolean;
+  objectPosition?: string;
 };
 
 type UserPresenceAvatarProps = React.ComponentProps<"div"> & {
@@ -20,33 +21,38 @@ type UserPresenceAvatarProps = React.ComponentProps<"div"> & {
 const DEFAULT_USERS: PresenceUser[] = [
   {
     id: 1,
-    name: "Merchant 1",
-    src: "https://pbs.twimg.com/profile_images/1602734731728142336/9Bppcs67_400x400.jpg",
+    name: "StepPay",
+    src: "/avatars/presence-1.jpg",
     active: true,
+    objectPosition: "50% 50%",
   },
   {
     id: 2,
     name: "Merchant 2",
-    src: "https://pbs.twimg.com/profile_images/1593304942210478080/TUYae5z7_400x400.jpg",
+    src: "/avatars/presence-2.jpg",
     active: true,
+    objectPosition: "50% 22%",
   },
   {
     id: 3,
     name: "Merchant 3",
-    src: "https://pbs.twimg.com/profile_images/1783856060249595904/8TfcCN0r_400x400.jpg",
+    src: "/avatars/presence-3.jpg",
     active: true,
+    objectPosition: "50% 30%",
   },
   {
     id: 4,
     name: "Merchant 4",
-    src: "https://pbs.twimg.com/profile_images/1690345911149375488/wfD0Ai9j_400x400.jpg",
+    src: "/avatars/presence-4.jpg",
     active: false,
+    objectPosition: "45% 26%",
   },
   {
     id: 5,
     name: "Merchant 5",
-    src: "https://pbs.twimg.com/profile_images/1677042510839857154/Kq4tpySA_400x400.jpg",
+    src: "/avatars/presence-5.jpg",
     active: true,
+    objectPosition: "50% 26%",
   },
 ];
 
@@ -88,6 +94,7 @@ export function UserPresenceAvatar({
               alt={user.name}
               className="h-full w-full rounded-full object-cover"
               loading="lazy"
+              style={{ objectPosition: user.objectPosition ?? "50% 50%" }}
             />
             {user.active ? (
               <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border border-background bg-green-500" />
