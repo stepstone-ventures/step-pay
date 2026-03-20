@@ -77,6 +77,7 @@ const MONO_LINK_COLUMNS = [
 
 const SPLINE_SCENE_URL = "https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
 const VIRTUAL_CARDS_HEADING = "Centralize Your Virtual Cards in Your StepPay Account"
+const STEP_PAY_PRO_URL = "/step-pay-pro"
 const STEP_CARDS = [
   {
     id: 1,
@@ -250,9 +251,9 @@ export default function Home() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <a href="mailto:steppayteam@gmail.com?subject=StepPay%20Contact%20Sales">
+            <a href={STEP_PAY_PRO_URL}>
               <LiquidButton className="px-4 py-2 text-sm font-semibold border border-border/60">
-                Contact Sales
+                StepPay Pro
               </LiquidButton>
             </a>
             <ShareButton />

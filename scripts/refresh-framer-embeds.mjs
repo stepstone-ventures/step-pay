@@ -24,6 +24,12 @@ const targets = [
     url: "https://steppayscratch.framer.website",
     out: path.join(ROOT, "public", "framer-scratch", "index.html"),
   },
+  {
+    key: "pro",
+    name: "framer-pro",
+    url: "https://steppaypro.framer.website",
+    out: path.join(ROOT, "public", "framer-pro", "index.html"),
+  },
 ];
 
 const args = new Set(process.argv.slice(2));
@@ -35,7 +41,7 @@ const requested =
 if (requested.length === 0) {
   console.error("No targets selected.");
   console.error(
-    "Usage: node scripts/refresh-framer-embeds.mjs [--hero] [--card] [--scratch]"
+    "Usage: node scripts/refresh-framer-embeds.mjs [--hero] [--card] [--scratch] [--pro]"
   );
   process.exit(1);
 }

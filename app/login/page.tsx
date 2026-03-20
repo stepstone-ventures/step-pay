@@ -24,6 +24,7 @@ import { ChevronDown } from "lucide-react"
 const RESEND_COOLDOWN_SECONDS = 120
 const LOGIN_COOLDOWN_UNTIL_KEY = "auth_login_otp_cooldown_until"
 const LOGIN_COOLDOWN_EMAIL_KEY = "auth_login_otp_cooldown_email"
+const STEP_PAY_PRO_URL = "/step-pay-pro"
 
 function GoogleIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -442,9 +443,9 @@ function LoginPageContent() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <a href="mailto:support@steppay.com?subject=StepPay%20Contact%20Sales">
+            <a href={STEP_PAY_PRO_URL}>
               <LiquidButton className="px-4 py-2 text-sm font-semibold border border-border/60">
-                Contact Sales
+                StepPay Pro
               </LiquidButton>
             </a>
             <ShareButton />

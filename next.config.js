@@ -42,6 +42,10 @@ const nextConfig = {
         source: "/framer-scratch/:path*",
         headers: framerEmbedHeaders,
       },
+      {
+        source: "/framer-pro/:path*",
+        headers: framerEmbedHeaders,
+      },
     ]
   },
 };

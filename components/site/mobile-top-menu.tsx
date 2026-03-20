@@ -50,6 +50,7 @@ const SHARE_ITEMS: ShareItem[] = [
   { id: "x", label: "X", href: "https://x.com", icon: XBrandIcon },
   { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com", icon: TikTokBrandIcon },
 ]
+const STEP_PAY_PRO_URL = "/step-pay-pro"
 
 function MenuRow({
   children,
@@ -177,15 +178,15 @@ export function MobileTopMenu({ className, contactSalesAsMenuRow = false }: Mobi
               <MenuRow
                 onClick={() => {
                   closeSheet()
-                  window.location.assign("mailto:support@steppay.com?subject=StepPay%20Contact%20Sales")
+                  window.location.assign(STEP_PAY_PRO_URL)
                 }}
               >
-                <span>Contact Sales</span>
+                <span>StepPay Pro</span>
               </MenuRow>
             ) : (
-              <a href="mailto:support@steppay.com?subject=StepPay%20Contact%20Sales" onClick={closeSheet} className="block">
+              <a href={STEP_PAY_PRO_URL} onClick={closeSheet} className="block">
                 <RippleButton data-topbar="true" variant="outline" className="w-full px-4 py-3 text-sm font-semibold border border-border/60">
-                  Contact Sales
+                  StepPay Pro
                   <RippleButtonRipples />
                 </RippleButton>
               </a>
